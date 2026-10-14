@@ -12,6 +12,9 @@ export interface WeaponEntry {
   color?: string
 }
 
+/** Armadura feita pelo mestre (aba Mestre > Pedidos). `armor` guarda o nome do modelo base do livro. */
+export interface ArmaduraPersonalizada { nome: string; base: string; cat: 'leve' | 'média' | 'pesada'; ref: number; fort: number; maxDex: number; especial: string }
+
 export interface GearEntry { n: string; q: number; w: number }
 export interface PowerEntry { n: string; used: boolean }
 
@@ -50,6 +53,8 @@ export interface Character {
   xp: number
   secondWind: number
   sample?: boolean
+  /** Opcional: armadura personalizada vestida (substitui os números do modelo base em `armor`). */
+  armaduraPersonalizada?: ArmaduraPersonalizada | null
   updated: number
 }
 

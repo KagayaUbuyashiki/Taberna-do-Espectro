@@ -7,6 +7,7 @@ export const NAV = [
   { path: '/mapas', label: 'Mapas' },
   { path: '/ambiente', label: 'Ambiente' },
   { path: '/nave', label: 'Nave' },
+  { path: '/mestre', label: 'Mestre' },
   { path: '/narracao', label: 'Narração' },
   { path: '/regras', label: 'Regras' },
 ] as const
