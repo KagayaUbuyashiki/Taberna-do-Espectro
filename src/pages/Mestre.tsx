@@ -1,20 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { ARMORS, WEAPONS } from '../data/saga'
 import { ACOES, ITENS, MATERIAIS, PLANETAS, PLANETA_BY, TAGS, acoesPadrao, type AcaoId, type Tag } from '../data/galaxy'
 import { useStore } from '../store/campaign'
 import { novoId, useGalaxy, type ItemPersonalizado, type Local, type Pedido, type Recompensa } from '../store/galaxy'
-import { campanhaAtual, criarCampanha, enviarImagem, entrarCampanha, sairCampanha, sync } from '../sync'
+import { PRECISA_EMAIL, campanhaAtual, contaAtual, criarCampanha, enviarImagem, enviarLinkEmail, entrarCampanha, sairCampanha, sync } from '../sync'
 import { supabase } from '../lib/supabase'
 import { MestreToggle } from '../components/galaxy/PlanetInfo'
 import { WantedPoster } from '../components/WantedPoster'
 import type { Character } from '../rules/types'
 
 const cr = (n: number) => `${n.toLocaleString('pt-BR')} cr`
-const campo = 'w-full border border-line bg-void px-3 py-2 outline-none focus:border-ember'
+const campo = 'input'
 const rotulo = 'font-display text-sm uppercase tracking-[.2em] text-ash'
-const btn = 'bg-blood px-4 py-2 font-display uppercase tracking-[.2em] hover:bg-ember disabled:bg-panel disabled:text-ash'
-const btn2 = 'border border-line px-4 py-2 font-display uppercase tracking-[.2em] hover:border-ember'
+const btn = 'btn btn-primary'
+const btn2 = 'btn btn-ghost'
 
 type Aba = 'pedidos' | 'arsenal' | 'mural' | 'locais' | 'mesa'
 const ABAS: { id: Aba; nome: string }[] = [
@@ -30,9 +30,9 @@ export default function Mestre() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-wrap items-end justify-between gap-4 border-l-4 border-blood bg-panel p-6">
+      <section className="flex flex-wrap items-end justify-between gap-4 border-l-4 border-gold bg-panel p-6">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[.3em] text-ember">Área do mestre</p>
+          <p className="font-mono text-xs uppercase tracking-[.3em] text-gold">Área do mestre</p>
           <h1 className="font-display text-5xl font-extrabold uppercase">Mestre</h1>
           {g.campanha && <p className="mt-1 font-mono text-sm text-ash">Mesa {g.campanha.name} · código <b className="text-bone">{g.campanha.code}</b></p>}
         </div>
@@ -51,8 +51,8 @@ export default function Mestre() {
           <nav className="flex flex-wrap gap-1" aria-label="Seções do mestre">
             {ABAS.map(a => (
               <button key={a.id} type="button" onClick={() => setAba(a.id)}
-                className={clsx('px-4 py-2 font-display text-sm font-semibold uppercase tracking-[.2em]', aba === a.id ? 'bg-blood text-bone' : 'border border-line text-ash hover:text-bone')}>
-                {a.nome}{a.id === 'pedidos' && pendentes > 0 && <span className="ml-2 bg-ember px-1.5 text-bone">{pendentes}</span>}
+                className={clsx('px-4 py-2 font-display text-sm font-semibold uppercase tracking-[.2em]', aba === a.id ? 'bg-gold text-black' : 'border border-line text-ash hover:text-bone')}>
+                {a.nome}{a.id === 'pedidos' && pendentes > 0 && <span className="ml-2 bg-gold px-1.5 text-black">{pendentes}</span>}
               </button>
             ))}
           </nav>
@@ -108,7 +108,7 @@ function Pedidos() {
     <section className="space-y-3">
       <div className="flex gap-1">
         {(['pendente', 'todos'] as const).map(f => (
-          <button key={f} type="button" onClick={() => setFiltro(f)} className={clsx('border px-3 py-1 font-display text-sm uppercase tracking-[.15em]', filtro === f ? 'border-ember bg-blood' : 'border-line text-ash')}>
+          <button key={f} type="button" onClick={() => setFiltro(f)} className={clsx('border px-3 py-1 font-display text-sm uppercase tracking-[.15em]', filtro === f ? 'border-gold bg-gold text-black' : 'border-line text-ash')}>
             {f === 'pendente' ? 'Pendentes' : 'Todos'}
           </button>
         ))}
@@ -119,13 +119,13 @@ function Pedidos() {
           const personalizado = p.tipo === 'armadura-personalizada' || p.tipo === 'arma-personalizada'
           const item = Object.values(g.arsenal).find(i => i.pedidoId === p.id)
           return (
-            <li key={p.id} className={clsx('border bg-panel p-4', personalizado ? 'border-ember/60' : 'border-line')}>
+            <li key={p.id} className={clsx('border bg-panel p-4', personalizado ? 'border-gold/60' : 'border-line')}>
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-lg font-semibold uppercase tracking-wider">{p.titulo}</p>
                   <p className="font-mono text-[11px] text-ash">{p.charNome} · {PLANETA_BY[p.planeta]?.nome}{p.local && g.locais[p.local] ? ` · ${g.locais[p.local].nome}` : ''} · {p.custo > 0 ? cr(p.custo) : p.custo < 0 ? `recebe ${cr(-p.custo)}` : 'sem custo'} · {new Date(p.t).toLocaleString('pt-BR')}</p>
                   {p.detalhes && <p className="mt-1 whitespace-pre-line text-sm text-ash">{p.detalhes}</p>}
-                  {p.resposta && <p className="mt-1 border-l-2 border-ember pl-2 text-sm">Você: {p.resposta}</p>}
+                  {p.resposta && <p className="mt-1 border-l-2 border-gold pl-2 text-sm">Você: {p.resposta}</p>}
                 </div>
                 <span className="border border-line px-2 py-0.5 font-mono text-[11px] uppercase text-ash">{p.status}</span>
               </div>
@@ -137,7 +137,7 @@ function Pedidos() {
                 )}
                 {(p.status === 'pendente' || (p.tipo === 'contrato' && p.status === 'aprovado')) && (
                   <input value={resp[p.id] ?? ''} onChange={e => setResp(r => ({ ...r, [p.id]: e.target.value }))} placeholder="Resposta para o jogador"
-                    className="min-w-40 flex-1 border border-line bg-void px-2 py-1.5 text-sm outline-none focus:border-ember" />
+                    className="input min-w-40 flex-1 py-1.5 text-sm" />
                 )}
                 {personalizado && p.status !== 'entregue' && p.status !== 'recusado' && (
                   <button type="button" onClick={() => setCriando(p)} className={btn}>{item ? 'Editar item' : 'Criar item'}</button>
@@ -223,12 +223,12 @@ function ItemForm({ pedido, inicial, onFim }: { pedido?: Pedido; inicial?: ItemP
   )
 
   return (
-    <section className="space-y-4 border border-ember bg-hull p-5">
+    <section className="space-y-4 border border-gold bg-hull p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-2xl font-bold uppercase tracking-[.2em]">{existente ? 'Editar' : 'Criar'} {it.tipo === 'arma' ? 'arma' : 'armadura'} personalizada</h2>
         <button type="button" onClick={onFim} className={btn2}>Voltar</button>
       </div>
-      {pedido && <p className="whitespace-pre-line border-l-2 border-ember bg-panel px-3 py-2 text-sm text-ash"><b className="text-bone">Pedido de {pedido.charNome}:</b>{'\n'}{pedido.detalhes}</p>}
+      {pedido && <p className="whitespace-pre-line border-l-2 border-gold bg-panel px-3 py-2 text-sm text-ash"><b className="text-bone">Pedido de {pedido.charNome}:</b>{'\n'}{pedido.detalhes}</p>}
       <div className="grid gap-4 md:grid-cols-3">
         {!pedido && (
           <label className="space-y-1"><span className={rotulo}>Tipo</span>
@@ -355,7 +355,7 @@ function MuralMestre() {
             </select></label>
           <label className="space-y-1 md:col-span-2"><span className={rotulo}>Pistas para os jogadores</span>
             <textarea className={clsx(campo, 'min-h-20')} value={r.notas} onChange={e => set('notas', e.target.value)} placeholder="Visto pela última vez na cantina de Mos Eisley." /></label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={r.visivel} onChange={e => set('visivel', e.target.checked)} className="accent-[var(--color-ember)]" />Visível para os jogadores</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={r.visivel} onChange={e => set('visivel', e.target.checked)} className="accent-[var(--color-gold)]" />Visível para os jogadores</label>
         </div>
         <div className="flex gap-2">
           <button type="submit" className={btn}>{editando ? 'Salvar cartaz' : 'Pregar no mural'}</button>
@@ -414,7 +414,7 @@ function Locais() {
           {locais.map(l => (
             <li key={l.id} className="flex items-center gap-2 border border-line bg-panel px-2 py-1">
               <span className="font-display uppercase tracking-wider">{l.nome}</span>
-              <button type="button" onClick={() => g.salvarLocal({ ...l, visivel: !l.visivel })} className={clsx('font-mono text-[11px]', l.visivel ? 'text-ember' : 'text-ash')}>{l.visivel ? 'revelado' : 'oculto'}</button>
+              <button type="button" onClick={() => g.salvarLocal({ ...l, visivel: !l.visivel })} className={clsx('font-mono text-[11px]', l.visivel ? 'text-gold' : 'text-ash')}>{l.visivel ? 'revelado' : 'oculto'}</button>
               <button type="button" onClick={() => setForm(l)} className="font-mono text-[11px] text-ash hover:text-bone">editar</button>
               <button type="button" onClick={() => g.apagarLocal(l.id)} className="font-mono text-[11px] text-ash hover:text-ember">apagar</button>
             </li>
@@ -428,7 +428,7 @@ function Locais() {
           <div className="mt-1 flex flex-wrap gap-1">
             {(Object.keys(TAGS) as Tag[]).map(t => (
               <button key={t} type="button" onClick={() => alternarTag(t)}
-                className={clsx('border px-1.5 py-0.5 font-mono text-[11px] uppercase', form.tags.includes(t) ? 'border-ember bg-blood text-bone' : 'border-line text-ash')}>#{TAGS[t]}</button>
+                className={clsx('border px-1.5 py-0.5 font-mono text-[11px] uppercase', form.tags.includes(t) ? 'border-gold bg-gold text-black' : 'border-line text-ash')}>#{TAGS[t]}</button>
             ))}
           </div>
         </div>
@@ -437,13 +437,13 @@ function Locais() {
           <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
             {(Object.keys(ACOES) as AcaoId[]).filter(a => a !== 'funcoes').map(a => (
               <label key={a} className="flex items-center gap-1.5 text-sm">
-                <input type="checkbox" checked={form.acoes.includes(a)} onChange={() => alternarAcao(a)} className="accent-[var(--color-ember)]" />{ACOES[a]}
+                <input type="checkbox" checked={form.acoes.includes(a)} onChange={() => alternarAcao(a)} className="accent-[var(--color-gold)]" />{ACOES[a]}
               </label>
             ))}
           </div>
         </div>
         <textarea value={form.nota} onChange={e => setForm(f => ({ ...f, nota: e.target.value }))} placeholder="Descrição que os jogadores veem" className={clsx(campo, 'min-h-20')} />
-        <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.visivel} onChange={e => setForm(f => ({ ...f, visivel: e.target.checked }))} className="accent-[var(--color-ember)]" />Revelado (os jogadores já encontraram)</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.visivel} onChange={e => setForm(f => ({ ...f, visivel: e.target.checked }))} className="accent-[var(--color-gold)]" />Revelado (os jogadores já encontraram)</label>
         <div className="flex gap-2">
           <button type="submit" className={btn}>{editando ? 'Salvar local' : 'Criar local'}</button>
           {editando && <button type="button" onClick={() => setForm(vazio())} className={btn2}>Cancelar</button>}
@@ -461,7 +461,20 @@ function MesaOnline() {
   const [codigo, setCodigo] = useState('')
   const [erro, setErro] = useState('')
   const [ocupado, setOcupado] = useState(false)
-  const rodar = (f: () => Promise<void>) => { setErro(''); setOcupado(true); f().catch(e => { setErro(e.message); setOcupado(false) }) }
+  const [precisaEmail, setPrecisaEmail] = useState(false)
+  const [email, setEmail] = useState('')
+  const [conta, setConta] = useState<string | null>(null)
+  const [linkEnviado, setLinkEnviado] = useState(false)
+  useEffect(() => { contaAtual().then(setConta) }, [])
+  const rodar = (f: () => Promise<void>) => {
+    setErro(''); setOcupado(true)
+    f().catch(e => {
+      setOcupado(false)
+      if (e.message === PRECISA_EMAIL) setPrecisaEmail(true)
+      else setErro(e.message)
+    })
+  }
+  const pedirLink = () => rodar(async () => { await enviarLinkEmail(email); setLinkEnviado(true); setOcupado(false) })
 
   return (
     <section className="space-y-3 border border-line bg-hull p-5">
@@ -474,12 +487,23 @@ function MesaOnline() {
       ) : campanha || campanhaAtual() ? (
         <div className="space-y-2">
           {campanha ? (
-            <p>Você está na mesa <b>{campanha.name}</b> como <b>{campanha.papel === 'gm' ? 'mestre' : 'jogador'}</b>. Código para os jogadores entrarem: <b className="font-mono text-2xl text-ember">{campanha.code}</b></p>
+            <p>Você está na mesa <b>{campanha.name}</b> como <b>{campanha.papel === 'gm' ? 'mestre' : 'jogador'}</b>. Código para os jogadores entrarem: <b className="font-mono text-2xl text-gold">{campanha.code}</b></p>
           ) : <p className="text-ash">Conectando à mesa…</p>}
           <button type="button" onClick={sairCampanha} className={btn2}>Sair da mesa</button>
         </div>
+      ) : precisaEmail && !conta ? (
+        linkEnviado ? (
+          <p>Mandei um link para <b>{email}</b>. Abra o e-mail <b>neste mesmo navegador</b> e clique no link; você volta para cá já logado.</p>
+        ) : (
+          <form onSubmit={e => { e.preventDefault(); pedirLink() }} className="max-w-md space-y-2">
+            <p className="text-sm text-ash">Para entrar numa mesa online, informe seu e-mail. Você recebe um link de entrada, sem senha.</p>
+            <input type="email" className={campo} value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" required />
+            <button type="submit" disabled={ocupado} className={btn}>Receber link</button>
+          </form>
+        )
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
+          {conta && <p className="text-sm text-ash md:col-span-2">Logado como {conta}.</p>}
           <form onSubmit={e => { e.preventDefault(); rodar(() => entrarCampanha(codigo)) }} className="space-y-2">
             <p className={rotulo}>Entrar com o código do mestre</p>
             <input className={clsx(campo, 'font-mono uppercase')} value={codigo} onChange={e => setCodigo(e.target.value)} placeholder="Ex.: K7QX2M" maxLength={6} required />

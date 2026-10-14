@@ -22,16 +22,16 @@ export default function Nave() {
 
   return (
     <div className="space-y-6">
-      <section className="relative overflow-hidden border-l-4 border-blood bg-panel">
+      <section className="relative overflow-hidden border-l-4 border-gold bg-panel">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto]">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="font-mono text-xs uppercase tracking-[.3em] text-ember">Nave · Computador de bordo</p>
+              <p className="font-mono text-xs uppercase tracking-[.3em] text-gold">Nave · Computador de bordo</p>
               <MestreToggle />
             </div>
             {g.mestre ? (
               <input value={g.nomeNave} onChange={e => g.setNomeNave(e.target.value)} aria-label="Nome da nave"
-                className="w-full border-b border-line bg-transparent font-display text-5xl font-extrabold uppercase outline-none focus:border-ember" />
+                className="w-full border-b border-line bg-transparent font-display text-5xl font-extrabold uppercase outline-none focus:border-gold" />
             ) : (
               <h1 className="font-display text-5xl font-extrabold uppercase">{g.nomeNave}</h1>
             )}
@@ -39,11 +39,11 @@ export default function Nave() {
             <TierBadge tier={atual.tier} />
             <div className="flex flex-wrap gap-3 pt-2">
               <button type="button" onClick={() => abrir()}
-                className="group relative bg-blood px-10 py-4 font-display text-2xl font-extrabold uppercase tracking-[.3em] text-bone transition hover:bg-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">
+                className="btn btn-primary group relative px-10 py-4 text-2xl tracking-[.3em]">
                 Navegar
-                <span className="absolute inset-x-0 -bottom-1 h-1 bg-ember transition group-hover:bg-bone" />
+                
               </button>
-              <Link to="/ambiente" className="border border-line px-6 py-4 font-display text-lg font-semibold uppercase tracking-[.2em] text-ash hover:border-ember hover:text-bone">
+              <Link to="/ambiente" className="btn btn-ghost">
                 Desembarcar
               </Link>
             </div>
@@ -60,23 +60,23 @@ export default function Nave() {
             {conhecidos.map(p => (
               <li key={p.id}>
                 <button type="button" onClick={() => abrir(p.id)}
-                  className={clsx('flex w-full items-center gap-3 border bg-panel px-3 py-2 text-left hover:border-ember', p.id === g.naveEm ? 'border-ember' : 'border-line')}>
+                  className={clsx('flex w-full items-center gap-3 border bg-panel px-3 py-2 text-left hover:border-gold', p.id === g.naveEm ? 'border-gold' : 'border-line')}>
                   <span className="h-6 w-6 shrink-0 rounded-full" style={{ background: p.cor, boxShadow: `0 0 0 2px ${TIERS[p.tier].cor}` }} />
                   <span className="flex-1">
                     <span className="block font-display font-semibold uppercase tracking-wider">{p.nome}</span>
                     <span className="font-mono text-[11px] text-ash">Tier {p.tier} · {p.grade}</span>
                   </span>
-                  {p.id === g.naveEm && <span className="font-mono text-[11px] text-ember">AQUI</span>}
+                  {p.id === g.naveEm && <span className="font-mono text-[11px] text-gold">AQUI</span>}
                 </button>
               </li>
             ))}
           </ul>
           {kyber.length > 0 && (
             <>
-              <h3 className="mt-6 font-display text-sm uppercase tracking-[.2em] text-ember">Sinais de kyber rastreados</h3>
+              <h3 className="mt-6 font-display text-sm uppercase tracking-[.2em] text-gold">Sinais de kyber rastreados</h3>
               <ul className="mt-2 flex flex-wrap gap-2">
                 {kyber.map(p => (
-                  <li key={p.id}><button type="button" onClick={() => abrir(p.id)} className="border border-line bg-panel px-3 py-1 font-display uppercase tracking-wider hover:border-ember">◆ {p.nome}</button></li>
+                  <li key={p.id}><button type="button" onClick={() => abrir(p.id)} className="border border-line bg-panel px-3 py-1 font-display uppercase tracking-wider hover:border-gold">◆ {p.nome}</button></li>
                 ))}
               </ul>
             </>
@@ -128,21 +128,21 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-void" role="dialog" aria-modal="true" aria-label="Mapa de navegação">
-      <header className="flex flex-wrap items-center gap-3 border-b-2 border-blood bg-hull px-4 py-2">
+      <header className="flex flex-wrap items-center gap-3 border-b-2 border-gold bg-hull px-4 py-2">
         <p className="font-display text-lg font-bold uppercase tracking-[.3em]">Navegação</p>
         <p className="hidden font-mono text-xs text-ash md:block">Arraste para girar · roda para aproximar · WASD voa, Q/E sobe e desce · clique num planeta</p>
         <div className="relative ml-auto">
           <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar planeta" aria-label="Buscar planeta"
-            className="w-44 border border-line bg-void px-3 py-1.5 font-mono text-sm outline-none focus:border-ember sm:w-60" />
+            className="input w-44 py-1.5 font-mono text-sm sm:w-60" />
           {resultados.length > 0 && (
             <ul className="absolute right-0 top-full z-10 mt-1 w-full border border-line bg-panel">
               {resultados.map(r => (
-                <li key={r.id}><button type="button" className="w-full px-3 py-1.5 text-left hover:bg-blood" onClick={() => { setSel(r.id); setBusca('') }}>{r.nome}</button></li>
+                <li key={r.id}><button type="button" className="w-full px-3 py-1.5 text-left hover:bg-gold/20" onClick={() => { setSel(r.id); setBusca('') }}>{r.nome}</button></li>
               ))}
             </ul>
           )}
         </div>
-        <button type="button" onClick={onClose} className="border border-line px-3 py-1.5 font-display uppercase tracking-[.2em] hover:border-ember">Fechar ✕</button>
+        <button type="button" onClick={onClose} className="btn btn-ghost">Fechar ✕</button>
       </header>
 
       <div className="relative flex-1">
@@ -151,7 +151,7 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
         </Suspense>
 
         {p && (
-          <aside className="absolute inset-x-0 bottom-0 max-h-[60%] overflow-y-auto border-t-2 border-blood bg-hull/95 p-5 backdrop-blur md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[400px] md:border-l-2 md:border-t-0">
+          <aside className="absolute inset-x-0 bottom-0 max-h-[60%] overflow-y-auto border-t-2 border-gold bg-hull/95 p-5 backdrop-blur md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[400px] md:border-l-2 md:border-t-0">
             <button type="button" onClick={() => setSel(null)} className="absolute right-3 top-3 text-ash hover:text-bone" aria-label="Fechar detalhes">✕</button>
             {conhecido ? (
               <>
@@ -168,9 +168,9 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
             )}
             <div className="mt-5 space-y-2">
               {p.id === g.naveEm ? (
-                <p className="border border-ember px-3 py-2 text-center font-display uppercase tracking-[.2em] text-ember">Você está aqui</p>
+                <p className="border border-gold px-3 py-2 text-center font-display uppercase tracking-[.2em] text-gold">Você está aqui</p>
               ) : conhecido ? (
-                <button type="button" onClick={saltar} className="w-full bg-blood py-3 font-display text-lg font-extrabold uppercase tracking-[.3em] hover:bg-ember">
+                <button type="button" onClick={saltar} className="w-full btn btn-primary">
                   Saltar para o hiperespaço
                 </button>
               ) : (
@@ -180,17 +180,17 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
               )}
               {g.mestre && p.id !== g.naveEm && (
                 g.rastreados.includes(p.id) || g.kyber.includes(p.id)
-                  ? <button type="button" onClick={() => g.esquecer(p.id)} className="w-full border border-line py-2 font-display uppercase tracking-[.2em] text-ash hover:border-ember">Mestre: remover coordenadas</button>
-                  : <button type="button" onClick={() => (p.tipo === 'kyber' ? g.rastrearKyber(p.id) : g.rastrear([p.id]))} className="w-full border border-ember py-2 font-display uppercase tracking-[.2em] text-ember hover:bg-blood hover:text-bone">Mestre: liberar para os jogadores</button>
+                  ? <button type="button" onClick={() => g.esquecer(p.id)} className="w-full btn btn-ghost">Mestre: remover coordenadas</button>
+                  : <button type="button" onClick={() => (p.tipo === 'kyber' ? g.rastrearKyber(p.id) : g.rastrear([p.id]))} className="w-full border border-gold py-2 font-display uppercase tracking-[.2em] text-gold hover:bg-gold hover:text-black">Mestre: liberar para os jogadores</button>
               )}
             </div>
           </aside>
         )}
 
         {chegada && !salto && (
-          <div className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-3 border border-ember bg-panel px-4 py-2 shadow-lg">
+          <div className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-3 border border-gold bg-panel px-4 py-2 shadow-lg">
             <span>Chegamos em <b>{PLANETA_BY[chegada].nome}</b>.</span>
-            <Link to="/ambiente" className="font-display uppercase tracking-[.2em] text-ember hover:text-bone">Ver ambiente →</Link>
+            <Link to="/ambiente" className="font-display uppercase tracking-[.2em] text-gold hover:text-bone">Ver ambiente →</Link>
             <button type="button" onClick={() => setChegada(null)} className="text-ash hover:text-bone" aria-label="Fechar aviso">✕</button>
           </div>
         )}

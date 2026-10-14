@@ -1,5 +1,5 @@
 -- Mesa online da Taberna do Espectro: campanhas, membros e estado compartilhado (kv).
--- Rode no SQL Editor do Supabase (ou `supabase db push`). Requer "Allow anonymous sign-ins".
+-- Rode no SQL Editor do Supabase (ou `supabase db push`). Login: anônimo se "Allow anonymous sign-ins" estiver ligado; senão, link por e-mail.
 
 create extension if not exists pgcrypto;
 

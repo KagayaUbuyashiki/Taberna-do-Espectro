@@ -44,12 +44,12 @@ export default function Ambiente() {
   return (
     <div className="space-y-6">
       {/* Cabeçalho do ambiente */}
-      <section className="border-l-4 border-blood bg-panel">
+      <section className="border-l-4 border-gold bg-panel">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[auto_1fr]">
           <div className="justify-self-center"><PlanetArt planeta={planeta} size={170} /></div>
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="font-mono text-xs uppercase tracking-[.3em] text-ember">Ambiente</p>
+              <p className="font-mono text-xs uppercase tracking-[.3em] text-gold">Ambiente</p>
               <MestreToggle />
             </div>
             <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{local ? local.nome : planeta.nome}</h1>
@@ -59,7 +59,7 @@ export default function Ambiente() {
             <div className="flex flex-wrap gap-2 pt-1">
               <Chip ativo={!local} onClick={() => g.setLocalAtual(null)}>{planeta.nome} (planeta)</Chip>
               {locaisAqui.map(l => <Chip key={l.id} ativo={local?.id === l.id} onClick={() => g.setLocalAtual(l.id)}>{l.nome}{!l.visivel && ' (oculto)'}</Chip>)}
-              {g.mestre && <Link to="/mestre" className="px-3 py-1 font-display text-sm uppercase tracking-[.2em] text-ember hover:text-bone">Criar locais →</Link>}
+              {g.mestre && <Link to="/mestre" className="px-3 py-1 font-display text-sm uppercase tracking-[.2em] text-gold hover:text-bone">Criar locais →</Link>}
               <Link to="/nave" className="px-3 py-1 font-display text-sm uppercase tracking-[.2em] text-ash hover:text-bone">Ir para a nave →</Link>
             </div>
           </div>
@@ -70,7 +70,7 @@ export default function Ambiente() {
       <section className="flex flex-wrap items-center gap-4 border border-line bg-hull px-5 py-3">
         <label className="flex items-center gap-3">
           <span className="font-display text-sm uppercase tracking-[.2em] text-ash">Personagem</span>
-          <select value={charId ?? ''} onChange={e => setCharId(e.target.value || null)} className="border border-line bg-void px-3 py-1.5 outline-none focus:border-ember">
+          <select value={charId ?? ''} onChange={e => setCharId(e.target.value || null)} className="border border-line bg-void px-3 py-1.5 outline-none focus:border-gold">
             {lista.length === 0 && <option value="">Nenhum personagem</option>}
             {lista.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
@@ -86,15 +86,15 @@ export default function Ambiente() {
           {visiveis.map(a => {
             const on = liberadas.includes(a)
             return (
-              <div key={a} className={clsx('relative border bg-panel', abaAtiva === a ? 'border-ember' : 'border-line', !on && 'opacity-50')}>
+              <div key={a} className={clsx('relative border bg-panel', abaAtiva === a ? 'border-gold' : 'border-line', !on && 'opacity-50')}>
                 <button type="button" disabled={!on} onClick={() => setAba(abaAtiva === a ? null : a)}
-                  className="flex h-full w-full flex-col items-start gap-1 p-3 text-left hover:bg-blood/30 disabled:cursor-not-allowed">
-                  <span className="text-2xl text-ember">{ICONES[a]}</span>
+                  className="flex h-full w-full flex-col items-start gap-1 p-3 text-left hover:bg-gold/10 disabled:cursor-not-allowed">
+                  <span className="text-2xl text-gold">{ICONES[a]}</span>
                   <span className="font-display text-sm font-semibold uppercase leading-tight tracking-wider">{ACOES[a]}</span>
                 </button>
                 {g.mestre && (
                   <button type="button" onClick={() => g.alternarAcao(ambienteId, a)} title={on ? 'Bloquear para os jogadores' : 'Liberar para os jogadores'}
-                    className={clsx('absolute right-1 top-1 px-1.5 font-mono text-[10px] uppercase', on ? 'bg-blood text-bone' : 'border border-line text-ash')}>
+                    className={clsx('absolute right-1 top-1 px-1.5 font-mono text-[10px] uppercase', on ? 'bg-gold text-black' : 'border border-line text-ash')}>
                     {on ? 'liberado' : 'bloqueado'}
                   </button>
                 )}
@@ -105,7 +105,7 @@ export default function Ambiente() {
       </section>
 
       {abaAtiva && (
-        <section className="border border-ember bg-hull p-5">
+        <section className="border border-gold bg-hull p-5">
           <h2 className="mb-4 font-display text-2xl font-bold uppercase tracking-[.2em]">{ACOES[abaAtiva]}</h2>
           {abaAtiva === 'comprar' && <Loja itens={lojaDoPlaneta(planeta, local?.tags)} char={char} pedir={pedir} />}
           {abaAtiva === 'vender' && <Vender char={char} pedir={pedir} />}
@@ -150,7 +150,7 @@ export default function Ambiente() {
 function Chip({ ativo, onClick, children }: { ativo: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button type="button" onClick={onClick}
-      className={clsx('border px-3 py-1 font-display text-sm uppercase tracking-[.15em]', ativo ? 'border-ember bg-blood text-bone' : 'border-line text-ash hover:text-bone')}>
+      className={clsx('border px-3 py-1 font-display text-sm uppercase tracking-[.15em]', ativo ? 'border-gold bg-gold text-black' : 'border-line text-ash hover:text-bone')}>
       {children}
     </button>
   )
@@ -167,7 +167,7 @@ function LinhaPedido({ titulo, desc, custo, onPedir }: { titulo: string; desc: s
         <p className="text-sm text-ash">{desc}</p>
       </div>
       <button type="button" disabled={ok} onClick={() => { onPedir(); setOk(true) }}
-        className="bg-blood px-4 py-2 font-display uppercase tracking-[.2em] hover:bg-ember disabled:bg-panel disabled:text-ash">
+        className="btn btn-primary">
         {ok ? 'Pedido enviado' : 'Solicitar'}
       </button>
     </li>
@@ -224,7 +224,7 @@ function Loja({ itens, char, pedir }: { itens: Item[]; char: Character | null; p
           return n > 0 && <Chip key={c.id} ativo={cat === c.id} onClick={() => setCat(c.id)}>{c.nome} · {n}</Chip>
         })}
       </div>
-      {msg && <p className="border-l-2 border-ember bg-panel px-3 py-2 text-sm" role="status">{msg}</p>}
+      {msg && <p className="border-l-2 border-gold bg-panel px-3 py-2 text-sm" role="status">{msg}</p>}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[560px] text-left text-sm">
           <thead className="font-display uppercase tracking-[.15em] text-ash">
@@ -238,7 +238,7 @@ function Loja({ itens, char, pedir }: { itens: Item[]; char: Character | null; p
                   <td className="py-2 pr-3 font-semibold text-bone">
                     <IconeItem item={i} />
                     {i.nome}
-                    {i.exclusivo && <span className="ml-2 border border-ember px-1 font-mono text-[10px] uppercase text-ember">exclusivo</span>}
+                    {i.exclusivo && <span className="ml-2 border border-gold px-1 font-mono text-[10px] uppercase text-gold">exclusivo</span>}
                     {i.ilegal && <span className="ml-2 border border-line px-1 font-mono text-[10px] uppercase text-ash">ilegal</span>}
                   </td>
                   <td className="pr-3 text-ash">{i.detalhe}</td>
@@ -246,7 +246,7 @@ function Loja({ itens, char, pedir }: { itens: Item[]; char: Character | null; p
                   <td className="text-right font-mono">{cr(i.preco)}</td>
                   <td className="pl-3 text-right">
                     <button type="button" onClick={() => comprar(i)} disabled={jaTem || (!!char && char.credits < i.preco)}
-                      className="bg-blood px-3 py-1 font-display uppercase tracking-[.15em] hover:bg-ember disabled:bg-panel disabled:text-ash">
+                      className="btn btn-primary">
                       {jaTem ? 'Já tem' : 'Comprar'}
                     </button>
                   </td>
@@ -282,7 +282,7 @@ function Vender({ char, pedir }: { char: Character | null; pedir: PedirFn }) {
           <span className="ml-auto font-mono text-ash">{valor(n) ? cr(valor(n)) : 'mestre avalia'}</span>
           <button type="button" disabled={enviados.includes(`${n}-${i}`)}
             onClick={() => { pedir('venda', `Vender ${n}`, 'Metade do preço de tabela, se o mestre aceitar.', -valor(n)); setEnviados(e => [...e, `${n}-${i}`]) }}
-            className="border border-line px-3 py-1 font-display text-sm uppercase tracking-[.15em] hover:border-ember disabled:text-ash">
+            className="btn btn-ghost">
             {enviados.includes(`${n}-${i}`) ? 'Enviado' : 'Oferecer'}
           </button>
         </li>
@@ -310,7 +310,7 @@ function Personalizado({ tipo, char, pedir, onEnviado }: { tipo: 'armadura-perso
     onEnviado()
   }
 
-  const campo = 'w-full border border-line bg-void px-3 py-2 outline-none focus:border-ember'
+  const campo = 'input'
   return (
     <form onSubmit={enviar} className="grid gap-4 md:grid-cols-2">
       <label className="space-y-1"><span className="font-display text-sm uppercase tracking-[.2em] text-ash">Nome</span>
@@ -330,7 +330,7 @@ function Personalizado({ tipo, char, pedir, onEnviado }: { tipo: 'armadura-perso
         <textarea className={clsx(campo, 'min-h-24')} value={extra} onChange={e => setExtra(e.target.value)} placeholder="Ex.: jetpack embutido, lâmina retrátil no pulso, modo atordoar..." /></label>
       <div className="flex flex-wrap items-center gap-4 md:col-span-2">
         <p className="font-mono">Custo estimado: <b className="text-bone">{cr(custo)}</b> <span className="text-ash">(o mestre define o final)</span></p>
-        <button type="submit" disabled={!char} className="ml-auto bg-blood px-6 py-2 font-display uppercase tracking-[.2em] hover:bg-ember disabled:bg-panel disabled:text-ash">Enviar ao mestre</button>
+        <button type="submit" disabled={!char} className="ml-auto btn btn-primary">Enviar ao mestre</button>
       </div>
     </form>
   )
@@ -348,7 +348,7 @@ function Contratar({ pedir }: { pedir: PedirFn }) {
 
 /* ------------------------------ Pedidos ------------------------------ */
 
-const STATUS_COR = { pendente: 'text-ash border-line', aprovado: 'text-bone border-ember bg-blood', entregue: 'text-bone border-ember bg-blood', recusado: 'text-ash border-line line-through' }
+const STATUS_COR = { pendente: 'text-ash border-line', aprovado: 'border-gold text-gold', entregue: 'border-gold text-gold', recusado: 'text-ash border-line line-through' }
 
 function Pedidos() {
   const g = useGalaxy()
@@ -357,7 +357,7 @@ function Pedidos() {
     <section className="border border-line bg-hull p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-xl font-bold uppercase tracking-[.2em]">Pedidos ao mestre</h2>
-        {g.mestre && <Link to="/mestre" className="font-display text-sm uppercase tracking-[.2em] text-ember hover:text-bone">Responder na aba Mestre →</Link>}
+        {g.mestre && <Link to="/mestre" className="font-display text-sm uppercase tracking-[.2em] text-gold hover:text-bone">Responder na aba Mestre →</Link>}
       </div>
       {lista.length === 0 && <p className="mt-2 text-sm text-ash">Nenhum pedido ainda.</p>}
       <ul className="mt-3 space-y-2">
@@ -366,7 +366,7 @@ function Pedidos() {
             <div className="min-w-0 flex-1">
               <p className="font-display font-semibold uppercase tracking-wider">{p.titulo}</p>
               <p className="font-mono text-[11px] text-ash">{p.charNome} · {PLANETA_BY[p.planeta]?.nome} · {p.custo > 0 ? cr(p.custo) : p.custo < 0 ? `recebe ${cr(-p.custo)}` : 'sem custo'}</p>
-              {p.resposta && <p className="mt-1 border-l-2 border-ember pl-2 text-sm">Mestre: {p.resposta}</p>}
+              {p.resposta && <p className="mt-1 border-l-2 border-gold pl-2 text-sm">Mestre: {p.resposta}</p>}
             </div>
             <span className={clsx('border px-2 py-0.5 font-mono text-[11px] uppercase', STATUS_COR[p.status])}>{p.status}</span>
           </li>
@@ -382,7 +382,7 @@ function Mural({ planetaId, pedir }: { planetaId: string; pedir: PedirFn }) {
   const g = useGalaxy()
   const cartazes = Object.values(g.mural).filter(r => (r.planeta === planetaId || r.planeta === 'galaxia') && (g.mestre || r.visivel) && r.status === 'aberto')
   const [aceitos, setAceitos] = useState<string[]>([])
-  if (cartazes.length === 0) return <p className="text-ash">Nenhum cartaz pregado aqui. {g.mestre && <Link to="/mestre" className="text-ember">Criar no Mural do mestre →</Link>}</p>
+  if (cartazes.length === 0) return <p className="text-ash">Nenhum cartaz pregado aqui. {g.mestre && <Link to="/mestre" className="text-gold">Criar no Mural do mestre →</Link>}</p>
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {cartazes.map((r, i) => (
@@ -392,7 +392,7 @@ function Mural({ planetaId, pedir }: { planetaId: string; pedir: PedirFn }) {
           {r.notas && <p className="text-sm text-ash">{r.notas}</p>}
           <button type="button" disabled={aceitos.includes(r.id)}
             onClick={() => { pedir('contrato', `Contrato: ${r.alvo}`, `${r.crime}. ${r.condicao}. Recompensa ${cr(r.recompensa)}.`, -r.recompensa, r.id); setAceitos(a => [...a, r.id]) }}
-            className="w-full bg-blood py-2 font-display uppercase tracking-[.2em] hover:bg-ember disabled:bg-panel disabled:text-ash">
+            className="w-full btn btn-primary">
             {aceitos.includes(r.id) ? 'Contrato pedido' : 'Aceitar contrato'}
           </button>
         </div>

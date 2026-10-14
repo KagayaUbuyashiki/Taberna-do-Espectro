@@ -320,7 +320,7 @@ export default function GalaxyMap3D({ selected, onSelect, naveEm, conhecidos, di
   const botao = (k: string, label: string, title: string) => (
     <button type="button" title={title} aria-label={title}
       onPointerDown={() => mover.current.add(k)} onPointerUp={() => mover.current.delete(k)} onPointerLeave={() => mover.current.delete(k)}
-      className="h-10 w-10 touch-none border border-line bg-panel/90 font-display text-lg text-bone active:border-ember active:bg-blood">{label}</button>
+      className="h-10 w-10 touch-none border border-line bg-panel/90 font-display text-lg text-bone active:border-gold active:bg-gold/30">{label}</button>
   )
 
   return (
@@ -354,7 +354,7 @@ export default function GalaxyMap3D({ selected, onSelect, naveEm, conhecidos, di
       <div className="absolute bottom-3 left-3 grid grid-cols-3 gap-1">
         <span />{botao('w', '▲', 'Avançar (W)')}{botao('q', '⤒', 'Subir (Q)')}
         {botao('a', '◀', 'Esquerda (A)')}
-        <button type="button" onClick={resetar} title="Ver a galáxia inteira" aria-label="Ver a galáxia inteira" className="h-10 w-10 border border-line bg-panel/90 text-bone hover:border-ember">⌂</button>
+        <button type="button" onClick={resetar} title="Ver a galáxia inteira" aria-label="Ver a galáxia inteira" className="h-10 w-10 border border-line bg-panel/90 text-bone hover:border-gold">⌂</button>
         {botao('d', '▶', 'Direita (D)')}
         <span />{botao('s', '▼', 'Recuar (S)')}{botao('e', '⤓', 'Descer (E)')}
       </div>
@@ -362,7 +362,7 @@ export default function GalaxyMap3D({ selected, onSelect, naveEm, conhecidos, di
         {([1, 2, 3, 4] as const).map(t => (
           <div key={t} className="flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: TIERS[t].cor }} />Tier {t} · {TIERS[t].nome}</div>
         ))}
-        <div className="mt-1 flex items-center gap-2"><span className="text-ember">▼</span>Sua nave</div>
+        <div className="mt-1 flex items-center gap-2"><span className="text-gold">▼</span>Sua nave</div>
         <div className="flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-full bg-bone/40 blur-[2px]" />Distúrbio na Força (sem coordenadas)</div>
       </div>
     </div>

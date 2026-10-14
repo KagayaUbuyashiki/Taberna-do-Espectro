@@ -108,12 +108,41 @@ export const sync: Transporte = supabase && campanha ? transporteSupabase(campan
 export type Papel = 'gm' | 'player'
 export interface Campanha { id: string; code: string; name: string; papel: Papel }
 
+/** Erro de login que pede o e-mail (o projeto Supabase não aceita entrar sem conta). */
+export const PRECISA_EMAIL = 'precisa-email'
+
 async function garantirLogin() {
   const { data } = await supabase!.auth.getSession()
   if (data.session) return data.session.user.id
   const r = await supabase!.auth.signInAnonymously()
-  if (r.error) throw new Error('Ative "Allow anonymous sign-ins" no Supabase (Authentication > Sign In / Providers).')
+  if (r.error) throw new Error(PRECISA_EMAIL)
   return r.data.user!.id
+}
+
+/** E-mail da conta logada, ou null (sem login ou login anônimo). */
+export async function contaAtual(): Promise<string | null> {
+  if (!supabase) return null
+  const { data } = await supabase.auth.getSession()
+  return data.session?.user.email ?? null
+}
+
+/** Manda um link de entrada para o e-mail. Ao clicar, a pessoa volta para a aba Mestre já logada. */
+export async function enviarLinkEmail(email: string) {
+  if (!supabase) throw new Error('Supabase não configurado.')
+  try { localStorage.setItem('taberna.posLogin', '#/mestre') } catch { /* */ }
+  const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: location.origin + location.pathname } })
+  if (error) throw new Error(error.message)
+}
+
+// Volta do link do e-mail: o Supabase troca o ?code= pela sessão; depois reabre a aba Mestre.
+if (supabase) {
+  supabase.auth.onAuthStateChange((evento) => {
+    if (evento !== 'SIGNED_IN') return
+    try {
+      const destino = localStorage.getItem('taberna.posLogin')
+      if (destino) { localStorage.removeItem('taberna.posLogin'); location.hash = destino }
+    } catch { /* */ }
+  })
 }
 
 function entrarLocal(id: string) {
@@ -147,7 +176,8 @@ export function sairCampanha() {
 /** Dados da mesa atual e o papel de quem está logado. */
 export async function minhaCampanha(): Promise<Campanha | null> {
   if (!supabase || !campanha) return null
-  const uid = await garantirLogin()
+  const uid = await garantirLogin().catch(() => null)
+  if (!uid) return null
   const { data } = await supabase.from('members').select('role, campaigns(id, code, name)').eq('campaign_id', campanha).eq('user_id', uid).maybeSingle()
   if (!data) return null
   const c = data.campaigns as unknown as { id: string; code: string; name: string }

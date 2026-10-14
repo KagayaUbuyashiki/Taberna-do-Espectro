@@ -33,13 +33,13 @@ export function PlanetInfo({ planeta, compacto }: { planeta: Planeta; compacto?:
       <div className="flex flex-wrap items-center gap-2">
         <TierBadge tier={planeta.tier} />
         {planeta.tipo === 'kyber' && <span className="border border-line px-2 py-0.5 font-display text-xs uppercase tracking-[.2em] text-bone">Rastreio de kyber</span>}
-        {planeta.tipo === 'segredo' && <span className="border border-ember px-2 py-0.5 font-display text-xs uppercase tracking-[.2em] text-ember">Oculto</span>}
+        {planeta.tipo === 'segredo' && <span className="border border-gold px-2 py-0.5 font-display text-xs uppercase tracking-[.2em] text-gold">Oculto</span>}
       </div>
       <p className="leading-relaxed">{planeta.descricao}</p>
       <TagList tags={planeta.tags} />
       {!compacto && (planeta.minerios?.length ?? 0) > 0 && (
         <div>
-          <h3 className="font-display text-sm uppercase tracking-[.2em] text-ember">Minérios exclusivos</h3>
+          <h3 className="font-display text-sm uppercase tracking-[.2em] text-gold">Minérios exclusivos</h3>
           <ul className="mt-1 space-y-1 text-sm">
             {planeta.minerios!.map(m => <li key={m}><b className="text-bone">{MINERIOS[m].nome}:</b> <span className="text-ash">{MINERIOS[m].efeito}</span></li>)}
           </ul>
@@ -47,7 +47,7 @@ export function PlanetInfo({ planeta, compacto }: { planeta: Planeta; compacto?:
       )}
       {!compacto && (planeta.funcoes?.length ?? 0) > 0 && (
         <div>
-          <h3 className="font-display text-sm uppercase tracking-[.2em] text-ember">Serviços especiais</h3>
+          <h3 className="font-display text-sm uppercase tracking-[.2em] text-gold">Serviços especiais</h3>
           <ul className="mt-1 space-y-1 text-sm">
             {planeta.funcoes!.map(f => <li key={f}><b className="text-bone">{FUNCOES[f].nome}:</b> <span className="text-ash">{FUNCOES[f].desc}</span></li>)}
           </ul>
@@ -64,7 +64,7 @@ export function MestreToggle() {
   return (
     <label className="inline-flex cursor-pointer items-center gap-2 font-display text-xs font-semibold uppercase tracking-[.2em] text-ash">
       <input type="checkbox" className="peer sr-only" checked={mestre} onChange={e => setMestre(e.target.checked)} />
-      <span className="relative h-5 w-9 border border-line bg-void transition-colors peer-checked:border-ember peer-checked:bg-blood peer-focus-visible:outline peer-focus-visible:outline-ember">
+      <span className="relative h-5 w-9 border border-line bg-void transition-colors peer-checked:border-gold peer-checked:bg-gold peer-focus-visible:outline peer-focus-visible:outline-gold">
         <span className={clsx('absolute top-0.5 h-3.5 w-3.5 bg-bone transition-all', mestre ? 'left-[18px]' : 'left-0.5')} />
       </span>
       Modo mestre
