@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { PLANETAS, PLANETA_BY, TIERS } from '../data/galaxy'
 import { useGalaxy } from '../store/galaxy'
-import { GalaxyMap } from '../components/galaxy/GalaxyMap'
 import { PlanetGlobe } from '../components/galaxy/PlanetGlobe'
 import { rng } from '../components/galaxy/rng'
 import { MestreToggle, PlanetInfo, TierBadge } from '../components/galaxy/PlanetInfo'
+
+// three.js só carrega quando o mapa abre.
+const GalaxyMap3D = lazy(() => import('../components/galaxy/GalaxyMap3D'))
 
 export default function Nave() {
   const g = useGalaxy()
@@ -108,10 +110,11 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
   const [chegada, setChegada] = useState<string | null>(null)
 
   const alcancaveis = useMemo(() => new Set(g.mestre ? PLANETAS.map(p => p.id) : [...g.rastreados, ...g.kyber]), [g.mestre, g.rastreados, g.kyber])
-  const visiveis = useMemo(() => new Set(PLANETAS.filter(p => p.tipo === 'comum' || g.mestre || g.rastreados.includes(p.id) || g.kyber.includes(p.id)).map(p => p.id)), [g.mestre, g.rastreados, g.kyber])
-  const resultados = busca.trim() ? PLANETAS.filter(p => visiveis.has(p.id) && p.nome.toLowerCase().includes(busca.trim().toLowerCase())).slice(0, 6) : []
+  // Sem coordenadas: o jogador só vê um distúrbio na Força. Kyber e ocultos nem isso.
+  const disturbios = useMemo(() => new Set(PLANETAS.filter(p => p.tipo === 'comum' && !alcancaveis.has(p.id)).map(p => p.id)), [alcancaveis])
+  const resultados = busca.trim() ? PLANETAS.filter(p => alcancaveis.has(p.id) && p.nome.toLowerCase().includes(busca.trim().toLowerCase())).slice(0, 6) : []
   const p = sel ? PLANETA_BY[sel] : null
-  const conhecido = p ? alcancaveis.has(p.id) : false
+  const conhecido = p ? alcancaveis.has(p.id) || p.id === g.naveEm : false
 
   const saltar = () => {
     if (!p) return
@@ -127,7 +130,7 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
     <div className="fixed inset-0 z-40 flex flex-col bg-void" role="dialog" aria-modal="true" aria-label="Mapa de navegação">
       <header className="flex flex-wrap items-center gap-3 border-b-2 border-blood bg-hull px-4 py-2">
         <p className="font-display text-lg font-bold uppercase tracking-[.3em]">Navegação</p>
-        <p className="hidden font-mono text-xs text-ash md:block">Arraste para mover · roda ou pinça para zoom · clique num planeta</p>
+        <p className="hidden font-mono text-xs text-ash md:block">Arraste para girar · roda para aproximar · WASD voa, Q/E sobe e desce · clique num planeta</p>
         <div className="relative ml-auto">
           <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar planeta" aria-label="Buscar planeta"
             className="w-44 border border-line bg-void px-3 py-1.5 font-mono text-sm outline-none focus:border-ember sm:w-60" />
@@ -143,13 +146,26 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
       </header>
 
       <div className="relative flex-1">
-        <GalaxyMap selected={sel} onSelect={setSel} naveEm={g.naveEm} alcancaveis={alcancaveis} visiveis={visiveis} reservaDireita={400} />
+        <Suspense fallback={<p className="grid h-full place-items-center font-display uppercase tracking-[.4em] text-ash">Calculando rotas…</p>}>
+          <GalaxyMap3D selected={sel} onSelect={setSel} naveEm={g.naveEm} conhecidos={alcancaveis} disturbios={disturbios} reservaDireita={400} />
+        </Suspense>
 
         {p && (
           <aside className="absolute inset-x-0 bottom-0 max-h-[60%] overflow-y-auto border-t-2 border-blood bg-hull/95 p-5 backdrop-blur md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[400px] md:border-l-2 md:border-t-0">
             <button type="button" onClick={() => setSel(null)} className="absolute right-3 top-3 text-ash hover:text-bone" aria-label="Fechar detalhes">✕</button>
-            <div className="flex justify-center py-2"><PlanetGlobe key={p.id} planeta={p} size={200} /></div>
-            <PlanetInfo planeta={p} />
+            {conhecido ? (
+              <>
+                <div className="flex justify-center py-2"><PlanetGlobe key={p.id} planeta={p} size={200} /></div>
+                <PlanetInfo planeta={p} />
+              </>
+            ) : (
+              <div className="space-y-3 pt-6">
+                <div className="mx-auto h-40 w-40 animate-pulse rounded-full bg-[radial-gradient(circle,rgba(239,230,210,.35),rgba(140,150,220,.15)_45%,transparent_70%)] blur-md" />
+                <p className="font-mono text-xs uppercase tracking-widest text-ash">Sinal desconhecido</p>
+                <h2 className="font-display text-3xl font-extrabold uppercase leading-none">Distúrbio na Força</h2>
+                <p className="leading-relaxed text-ash">Algo está aqui, mas os sensores só mostram uma ondulação. Sem coordenadas, ninguém sabe que mundo é este.</p>
+              </div>
+            )}
             <div className="mt-5 space-y-2">
               {p.id === g.naveEm ? (
                 <p className="border border-ember px-3 py-2 text-center font-display uppercase tracking-[.2em] text-ember">Você está aqui</p>
@@ -159,7 +175,7 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
                 </button>
               ) : (
                 <p className="border border-line px-3 py-2 text-sm text-ash">
-                  <b className="text-bone">Sem coordenadas.</b> {p.tipo === 'kyber' ? 'Este mundo só aparece rastreando um cristal kyber.' : 'Compre uma carta de astrogação ou peça ao mestre para liberar.'}
+                  <b className="text-bone">Sem coordenadas.</b> Explore, compre cartas de astrogação no Ambiente ou peça ao mestre.
                 </p>
               )}
               {g.mestre && p.id !== g.naveEm && (

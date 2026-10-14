@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import {
-  ACOES, FUNCOES, ITENS, MATERIAIS, MINERIOS, PLANETAS, PLANETA_BY, TAGS, acoesPadrao, lojaDoPlaneta, planetasDaCarta,
+  ACOES, FUNCOES, ITENS, MATERIAIS, MINERIOS, PLANETA_BY, acoesPadrao, lojaDoPlaneta, planetasDaCarta,
   type AcaoId, type CategoriaItem, type Item, type Tag,
 } from '../data/galaxy'
 import { useStore } from '../store/campaign'
-import { acoesDoAmbiente, novoId, useGalaxy, type Local, type Pedido, type TipoPedido } from '../store/galaxy'
+import { acoesDoAmbiente, novoId, useGalaxy, type Pedido, type TipoPedido } from '../store/galaxy'
+import { WantedPoster } from '../components/WantedPoster'
 import { PlanetGlobe } from '../components/galaxy/PlanetGlobe'
 import { MestreToggle, TagList, TierBadge } from '../components/galaxy/PlanetInfo'
 import type { Character } from '../rules/types'
@@ -15,7 +16,7 @@ const cr = (n: number) => `${n.toLocaleString('pt-BR')} cr`
 
 const ICONES: Record<AcaoId, string> = {
   comprar: '◈', vender: '⇄', 'armadura-personalizada': '⛨', 'arma-personalizada': '⚔', minerar: '⛏',
-  'rastrear-kyber': '◆', descansar: '✚', contratar: '☉', funcoes: '✦',
+  'rastrear-kyber': '◆', descansar: '✚', contratar: '☉', mural: '☠', funcoes: '✦',
 }
 
 export default function Ambiente() {
@@ -27,8 +28,9 @@ export default function Ambiente() {
   const char = charId ? chars[charId] ?? null : null
 
   const planeta = PLANETA_BY[g.naveEm]
-  const locaisAqui = Object.values(g.locais).filter(l => l.planeta === planeta.id)
-  const local = g.localAtual ? g.locais[g.localAtual] ?? null : null
+  // Locais escondidos só aparecem quando o mestre revela: os jogadores exploram.
+  const locaisAqui = Object.values(g.locais).filter(l => l.planeta === planeta.id && (g.mestre || l.visivel))
+  const local = g.localAtual && locaisAqui.some(l => l.id === g.localAtual) ? g.locais[g.localAtual] : null
   const tags: Tag[] = local ? local.tags : planeta.tags
   const liberadas = acoesDoAmbiente(planeta.id, local, g.bloqueadas)
   const todas = local ? local.acoes : acoesPadrao(planeta.tags, planeta)
@@ -56,7 +58,8 @@ export default function Ambiente() {
             <p className="max-w-3xl leading-relaxed">{local?.nota || planeta.descricao}</p>
             <div className="flex flex-wrap gap-2 pt-1">
               <Chip ativo={!local} onClick={() => g.setLocalAtual(null)}>{planeta.nome} (planeta)</Chip>
-              {locaisAqui.map(l => <Chip key={l.id} ativo={local?.id === l.id} onClick={() => g.setLocalAtual(l.id)}>{l.nome}</Chip>)}
+              {locaisAqui.map(l => <Chip key={l.id} ativo={local?.id === l.id} onClick={() => g.setLocalAtual(l.id)}>{l.nome}{!l.visivel && ' (oculto)'}</Chip>)}
+              {g.mestre && <Link to="/mestre" className="px-3 py-1 font-display text-sm uppercase tracking-[.2em] text-ember hover:text-bone">Criar locais →</Link>}
               <Link to="/nave" className="px-3 py-1 font-display text-sm uppercase tracking-[.2em] text-ash hover:text-bone">Ir para a nave →</Link>
             </div>
           </div>
@@ -127,6 +130,7 @@ export default function Ambiente() {
               onPedir={() => pedir('descansar', 'Descanso', `Descanso em ${local?.nome ?? planeta.nome}.`)} />
           )}
           {abaAtiva === 'contratar' && <Contratar pedir={pedir} />}
+          {abaAtiva === 'mural' && <Mural planetaId={planeta.id} pedir={pedir} />}
           {abaAtiva === 'funcoes' && (
             <ul className="space-y-2">
               {(planeta.funcoes ?? []).map(f => (
@@ -139,7 +143,6 @@ export default function Ambiente() {
       )}
 
       <Pedidos />
-      {g.mestre && <Locais planetaId={planeta.id} />}
     </div>
   )
 }
@@ -336,60 +339,27 @@ function Contratar({ pedir }: { pedir: PedirFn }) {
 
 /* ------------------------------ Pedidos ------------------------------ */
 
-const STATUS_COR = { pendente: 'text-ash border-line', aprovado: 'text-bone border-ember bg-blood', recusado: 'text-ash border-line line-through' }
+const STATUS_COR = { pendente: 'text-ash border-line', aprovado: 'text-bone border-ember bg-blood', entregue: 'text-bone border-ember bg-blood', recusado: 'text-ash border-line line-through' }
 
 function Pedidos() {
   const g = useGalaxy()
-  const chars = useStore(s => s.chars)
-  const [respostas, setRespostas] = useState<Record<string, string>>({})
-  const [kyberAlvo, setKyberAlvo] = useState<Record<string, string>>({})
-  const lista = g.pedidos.filter(p => p.tipo !== 'compra' || g.mestre).slice(0, 40)
-  const kyberPlanetas = PLANETAS.filter(p => p.tipo === 'kyber')
-
-  const aprovar = (p: Pedido) => {
-    const c = p.charId ? chars[p.charId] : null
-    if (c && p.custo) useStore.getState().patchChar(c.id, { credits: c.credits - p.custo })
-    if (p.tipo === 'minerar' && p.itemId && c) {
-      const nome = ITENS.find(i => i.id === p.itemId)?.nome ?? p.titulo
-      useStore.getState().patchChar(c.id, { gear: [...c.gear, { n: nome, q: 1, w: 1 }] })
-    }
-    if (p.tipo === 'rastrear-kyber') g.rastrearKyber(kyberAlvo[p.id] ?? kyberPlanetas[0].id)
-    g.responder(p.id, 'aprovado', respostas[p.id] ?? '')
-  }
-
+  const lista = g.pedidos.filter(p => p.tipo !== 'compra').slice(0, 30)
   return (
     <section className="border border-line bg-hull p-5">
-      <h2 className="font-display text-xl font-bold uppercase tracking-[.2em]">{g.mestre ? 'Pedidos dos jogadores' : 'Seus pedidos ao mestre'}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-xl font-bold uppercase tracking-[.2em]">Pedidos ao mestre</h2>
+        {g.mestre && <Link to="/mestre" className="font-display text-sm uppercase tracking-[.2em] text-ember hover:text-bone">Responder na aba Mestre →</Link>}
+      </div>
       {lista.length === 0 && <p className="mt-2 text-sm text-ash">Nenhum pedido ainda.</p>}
       <ul className="mt-3 space-y-2">
         {lista.map(p => (
-          <li key={p.id} className="border border-line bg-panel p-3">
-            <div className="flex flex-wrap items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="font-display font-semibold uppercase tracking-wider">{p.titulo}</p>
-                <p className="font-mono text-[11px] text-ash">{p.charNome} · {PLANETA_BY[p.planeta]?.nome}{p.local && g.locais[p.local] ? ` · ${g.locais[p.local].nome}` : ''} · {p.custo > 0 ? cr(p.custo) : p.custo < 0 ? `recebe ${cr(-p.custo)}` : 'sem custo'}</p>
-                {p.detalhes && <p className="mt-1 whitespace-pre-line text-sm text-ash">{p.detalhes}</p>}
-                {p.resposta && <p className="mt-1 border-l-2 border-ember pl-2 text-sm">Mestre: {p.resposta}</p>}
-              </div>
-              <span className={clsx('border px-2 py-0.5 font-mono text-[11px] uppercase', STATUS_COR[p.status])}>{p.status}</span>
+          <li key={p.id} className="flex flex-wrap items-start gap-2 border border-line bg-panel p-3">
+            <div className="min-w-0 flex-1">
+              <p className="font-display font-semibold uppercase tracking-wider">{p.titulo}</p>
+              <p className="font-mono text-[11px] text-ash">{p.charNome} · {PLANETA_BY[p.planeta]?.nome} · {p.custo > 0 ? cr(p.custo) : p.custo < 0 ? `recebe ${cr(-p.custo)}` : 'sem custo'}</p>
+              {p.resposta && <p className="mt-1 border-l-2 border-ember pl-2 text-sm">Mestre: {p.resposta}</p>}
             </div>
-            {g.mestre && p.status === 'pendente' && (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                {p.tipo === 'rastrear-kyber' && (
-                  <select aria-label="Planeta do cristal" value={kyberAlvo[p.id] ?? kyberPlanetas[0].id} onChange={e => setKyberAlvo(k => ({ ...k, [p.id]: e.target.value }))}
-                    className="border border-line bg-void px-2 py-1 text-sm">
-                    {kyberPlanetas.map(k => <option key={k.id} value={k.id}>Revelar {k.nome}</option>)}
-                  </select>
-                )}
-                <input value={respostas[p.id] ?? ''} onChange={e => setRespostas(r => ({ ...r, [p.id]: e.target.value }))} placeholder="Resposta (opcional)"
-                  className="min-w-40 flex-1 border border-line bg-void px-2 py-1 text-sm outline-none focus:border-ember" />
-                <button type="button" onClick={() => aprovar(p)} className="bg-blood px-3 py-1 font-display text-sm uppercase tracking-[.15em] hover:bg-ember">Aprovar</button>
-                <button type="button" onClick={() => g.responder(p.id, 'recusado', respostas[p.id] ?? '')} className="border border-line px-3 py-1 font-display text-sm uppercase tracking-[.15em] hover:border-ember">Recusar</button>
-              </div>
-            )}
-            {g.mestre && p.status !== 'pendente' && (
-              <button type="button" onClick={() => g.apagarPedido(p.id)} className="mt-2 font-mono text-[11px] text-ash hover:text-ember">apagar</button>
-            )}
+            <span className={clsx('border px-2 py-0.5 font-mono text-[11px] uppercase', STATUS_COR[p.status])}>{p.status}</span>
           </li>
         ))}
       </ul>
@@ -397,70 +367,27 @@ function Pedidos() {
   )
 }
 
-/* ------------------------- Locais do mestre ------------------------- */
+/* ------------------------- Mural de recompensas ------------------------- */
 
-function Locais({ planetaId }: { planetaId: string }) {
+function Mural({ planetaId, pedir }: { planetaId: string; pedir: PedirFn }) {
   const g = useGalaxy()
-  const vazio = (): Local => ({ id: novoId(), planeta: planetaId, nome: '', tags: [], acoes: ['descansar'], nota: '' })
-  const [form, setForm] = useState<Local>(vazio)
-  const editando = !!g.locais[form.id]
-  const locais = Object.values(g.locais).filter(l => l.planeta === planetaId)
-
-  const alternarTag = (t: Tag) => setForm(f => {
-    const tags = f.tags.includes(t) ? f.tags.filter(x => x !== t) : [...f.tags, t]
-    return { ...f, tags, acoes: [...new Set([...acoesPadrao(tags), ...f.acoes.filter(a => a !== 'funcoes')])] }
-  })
-  const alternarAcao = (a: AcaoId) => setForm(f => ({ ...f, acoes: f.acoes.includes(a) ? f.acoes.filter(x => x !== a) : [...f.acoes, a] }))
-  const salvar = (e: React.FormEvent) => {
-    e.preventDefault()
-    g.salvarLocal({ ...form, planeta: planetaId })
-    setForm(vazio())
-  }
-
+  const cartazes = Object.values(g.mural).filter(r => (r.planeta === planetaId || r.planeta === 'galaxia') && (g.mestre || r.visivel) && r.status === 'aberto')
+  const [aceitos, setAceitos] = useState<string[]>([])
+  if (cartazes.length === 0) return <p className="text-ash">Nenhum cartaz pregado aqui. {g.mestre && <Link to="/mestre" className="text-ember">Criar no Mural do mestre →</Link>}</p>
   return (
-    <section className="border border-ember/60 bg-hull p-5">
-      <h2 className="font-display text-xl font-bold uppercase tracking-[.2em]">Mestre: locais e mapas deste planeta</h2>
-      <p className="mt-1 text-sm text-ash">Crie lugares (uma cantina, uma base, o mapa de uma missão) com tags. As tags sugerem o que os jogadores podem fazer ali, e você liga ou desliga cada ação.</p>
-      {locais.length > 0 && (
-        <ul className="mt-3 flex flex-wrap gap-2">
-          {locais.map(l => (
-            <li key={l.id} className="flex items-center gap-2 border border-line bg-panel px-2 py-1">
-              <span className="font-display uppercase tracking-wider">{l.nome}</span>
-              <button type="button" onClick={() => setForm(l)} className="font-mono text-[11px] text-ash hover:text-bone">editar</button>
-              <button type="button" onClick={() => g.apagarLocal(l.id)} className="font-mono text-[11px] text-ash hover:text-ember">apagar</button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <form onSubmit={salvar} className="mt-4 space-y-3">
-        <input value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))} placeholder="Nome do local" required
-          className="w-full border border-line bg-void px-3 py-2 outline-none focus:border-ember" />
-        <div>
-          <p className="font-display text-sm uppercase tracking-[.2em] text-ash">Tags</p>
-          <div className="mt-1 flex flex-wrap gap-1">
-            {(Object.keys(TAGS) as Tag[]).map(t => (
-              <button key={t} type="button" onClick={() => alternarTag(t)}
-                className={clsx('border px-1.5 py-0.5 font-mono text-[11px] uppercase', form.tags.includes(t) ? 'border-ember bg-blood text-bone' : 'border-line text-ash')}>#{TAGS[t]}</button>
-            ))}
-          </div>
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {cartazes.map((r, i) => (
+        <div key={r.id} className="space-y-2">
+          <WantedPoster name={r.alvo} subtitle={r.crime} image={r.imagem || undefined} tilt={[-2, 1.5, -1, 2][i % 4]}
+            stats={[{ label: 'Nível', value: r.nivel }, { label: 'Condição', value: r.condicao }]} reward={cr(r.recompensa)} />
+          {r.notas && <p className="text-sm text-ash">{r.notas}</p>}
+          <button type="button" disabled={aceitos.includes(r.id)}
+            onClick={() => { pedir('contrato', `Contrato: ${r.alvo}`, `${r.crime}. ${r.condicao}. Recompensa ${cr(r.recompensa)}.`, -r.recompensa, r.id); setAceitos(a => [...a, r.id]) }}
+            className="w-full bg-blood py-2 font-display uppercase tracking-[.2em] hover:bg-ember disabled:bg-panel disabled:text-ash">
+            {aceitos.includes(r.id) ? 'Contrato pedido' : 'Aceitar contrato'}
+          </button>
         </div>
-        <div>
-          <p className="font-display text-sm uppercase tracking-[.2em] text-ash">Liberado para os jogadores</p>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-            {(Object.keys(ACOES) as AcaoId[]).filter(a => a !== 'funcoes').map(a => (
-              <label key={a} className="flex items-center gap-1.5 text-sm">
-                <input type="checkbox" checked={form.acoes.includes(a)} onChange={() => alternarAcao(a)} className="accent-[var(--color-ember)]" />{ACOES[a]}
-              </label>
-            ))}
-          </div>
-        </div>
-        <textarea value={form.nota} onChange={e => setForm(f => ({ ...f, nota: e.target.value }))} placeholder="Descrição que os jogadores veem"
-          className="min-h-20 w-full border border-line bg-void px-3 py-2 outline-none focus:border-ember" />
-        <div className="flex gap-2">
-          <button type="submit" className="bg-blood px-5 py-2 font-display uppercase tracking-[.2em] hover:bg-ember">{editando ? 'Salvar local' : 'Criar local'}</button>
-          {editando && <button type="button" onClick={() => setForm(vazio())} className="border border-line px-4 py-2 font-display uppercase tracking-[.2em]">Cancelar</button>}
-        </div>
-      </form>
-    </section>
+      ))}
+    </div>
   )
 }

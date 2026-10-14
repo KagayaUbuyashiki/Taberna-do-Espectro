@@ -384,6 +384,7 @@ export const ACOES = {
   'rastrear-kyber': 'Rastrear cristal kyber',
   descansar: 'Descansar e se curar',
   contratar: 'Contratar ajuda',
+  mural: 'Mural de recompensas',
   funcoes: 'Serviços especiais do planeta',
 } as const
 export type AcaoId = keyof typeof ACOES
@@ -393,7 +394,8 @@ export function acoesPadrao(tags: Tag[], p?: Planeta): AcaoId[] {
   const t = new Set(tags)
   const a = new Set<AcaoId>(['descansar'])
   if (t.has('mercado') || t.has('mercado-negro') || t.has('urbano')) a.add('comprar').add('vender')
-  if (t.has('cantina') || t.has('cacadores')) a.add('contratar')
+  if (t.has('cantina') || t.has('cacadores')) a.add('contratar').add('mural')
+  if (t.has('urbano') || p?.funcoes?.includes('guilda-cacadores')) a.add('mural')
   if (t.has('mineracao') || (p?.minerios?.length ?? 0) > 0) a.add('minerar')
   if (t.has('forca') || t.has('jedi') || t.has('kyber')) a.add('rastrear-kyber')
   if ((p?.funcoes?.length ?? 0) > 0) a.add('funcoes')
