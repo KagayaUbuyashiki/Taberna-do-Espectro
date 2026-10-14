@@ -13,6 +13,10 @@
   --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
   --font-body: "Chakra Petch", system-ui, sans-serif;
   --font-mono: "Share Tech Mono", ui-monospace, monospace;
+  --font-poster: "Bebas Neue", "Arial Narrow", sans-serif;
+  --color-parchment: #efe6d2;
+  --color-ink: #1a140a;
+  --color-wanted-red: #8b0a0f;
 }
 
 html, body, #root { height: 100%; }
