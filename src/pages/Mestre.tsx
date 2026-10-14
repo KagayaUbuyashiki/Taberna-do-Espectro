@@ -4,7 +4,7 @@ import { ARMORS, WEAPONS } from '../data/saga'
 import { ACOES, ITENS, MATERIAIS, PLANETAS, PLANETA_BY, TAGS, acoesPadrao, type AcaoId, type Tag } from '../data/galaxy'
 import { useStore } from '../store/campaign'
 import { novoId, useGalaxy, type ItemPersonalizado, type Local, type Pedido, type Recompensa } from '../store/galaxy'
-import { campanhaAtual, criarCampanha, entrarCampanha, sairCampanha, sync } from '../sync'
+import { campanhaAtual, criarCampanha, enviarImagem, entrarCampanha, sairCampanha, sync } from '../sync'
 import { supabase } from '../lib/supabase'
 import { MestreToggle } from '../components/galaxy/PlanetInfo'
 import { WantedPoster } from '../components/WantedPoster'
@@ -323,18 +323,11 @@ function MuralMestre() {
   const set = <K extends keyof Recompensa>(k: K, v: Recompensa[K]) => setR(x => ({ ...x, [k]: v }))
   const lista = Object.values(g.mural)
   const editando = !!g.mural[r.id]
+  const [enviando, setEnviando] = useState(false)
   const imagem = (f: File | undefined) => {
     if (!f) return
-    // Reduz a foto para caber no estado compartilhado.
-    const img = new Image()
-    img.onload = () => {
-      const k = Math.min(1, 240 / Math.max(img.width, img.height))
-      const cv = document.createElement('canvas'); cv.width = img.width * k; cv.height = img.height * k
-      cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height)
-      set('imagem', cv.toDataURL('image/jpeg', 0.8))
-      URL.revokeObjectURL(img.src)
-    }
-    img.src = URL.createObjectURL(f)
+    setEnviando(true)
+    enviarImagem(f).then(url => set('imagem', url)).catch(e => alert(e.message)).finally(() => setEnviando(false))
   }
 
   return (
@@ -355,7 +348,7 @@ function MuralMestre() {
               {PLANETAS.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
             </select></label>
           <label className="space-y-1"><span className={rotulo}>Nível do alvo</span><input type="number" min={1} className={campo} value={r.nivel} onChange={e => set('nivel', Number(e.target.value))} /></label>
-          <label className="space-y-1"><span className={rotulo}>Foto</span><input type="file" accept="image/*" className={campo} onChange={e => imagem(e.target.files?.[0])} /></label>
+          <label className="space-y-1"><span className={rotulo}>Imagem do personagem{enviando && ' (enviando…)'}</span><input type="file" accept="image/*" className={campo} onChange={e => imagem(e.target.files?.[0])} /></label>
           <label className="space-y-1"><span className={rotulo}>Situação</span>
             <select className={campo} value={r.status} onChange={e => set('status', e.target.value as Recompensa['status'])}>
               <option value="aberto">Aberto</option><option value="capturado">Capturado</option><option value="encerrado">Encerrado</option>

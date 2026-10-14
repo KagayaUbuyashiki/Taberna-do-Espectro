@@ -153,3 +153,42 @@ export async function minhaCampanha(): Promise<Campanha | null> {
   const c = data.campaigns as unknown as { id: string; code: string; name: string }
   return { id: c.id, code: c.code, name: c.name, papel: data.role as Papel }
 }
+
+/* -------------------------------- Imagens -------------------------------- */
+
+/** Reduz a imagem no navegador (lado maior em `max` px) e devolve um JPEG. */
+function reduzir(f: File, max: number): Promise<Blob> {
+  return new Promise((ok, falha) => {
+    const img = new Image()
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height))
+      const cv = document.createElement('canvas'); cv.width = Math.round(img.width * k); cv.height = Math.round(img.height * k)
+      cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height)
+      URL.revokeObjectURL(img.src)
+      cv.toBlob(b => (b ? ok(b) : falha(new Error('Não deu para ler a imagem.'))), 'image/jpeg', 0.85)
+    }
+    img.onerror = () => falha(new Error('Arquivo de imagem inválido.'))
+    img.src = URL.createObjectURL(f)
+  })
+}
+
+/**
+ * Guarda uma imagem enviada pelo mestre (cartazes, personagens) e devolve a URL.
+ * Com mesa online vai para o Supabase Storage (bucket `imagens`); sem ela, fica embutida no estado.
+ */
+export async function enviarImagem(f: File, pasta = 'cartazes'): Promise<string> {
+  if (supabase && campanha) {
+    const blob = await reduzir(f, 900)
+    const caminho = `${campanha}/${pasta}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`
+    const { error } = await supabase.storage.from('imagens').upload(caminho, blob, { contentType: 'image/jpeg' })
+    if (error) throw new Error(`Falha ao enviar a imagem: ${error.message}`)
+    return supabase.storage.from('imagens').getPublicUrl(caminho).data.publicUrl
+  }
+  const blob = await reduzir(f, 420)
+  return new Promise((ok, falha) => {
+    const r = new FileReader()
+    r.onload = () => ok(r.result as string)
+    r.onerror = () => falha(new Error('Não deu para ler a imagem.'))
+    r.readAsDataURL(blob)
+  })
+}
