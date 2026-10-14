@@ -10,7 +10,11 @@ export function Portrait({ species, src, className }: { species: string; src?: s
   if (src) return <div className={box}><img src={src} alt="" className="h-full w-full object-cover" /></div>
   return (
     <div className={box}>
-      <AssetImg path={ASSET.species(species)} className="h-full w-full object-cover" fallback={<Svg html={ART.avatar(species)} className="block h-full w-full [&>svg]:h-full [&>svg]:w-full" />} />
+      <AssetImg
+        path={species ? ASSET.species(species) : ASSET.blankPortrait}
+        className="h-full w-full object-cover"
+        fallback={<Svg html={ART.avatar(species)} className="block h-full w-full [&>svg]:h-full [&>svg]:w-full" />}
+      />
     </div>
   )
 }

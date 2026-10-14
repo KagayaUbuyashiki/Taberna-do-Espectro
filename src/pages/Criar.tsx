@@ -78,6 +78,7 @@ export default function Criar() {
   return (
     <div>
       <PageHeader
+        bg="criar"
         kicker="Estaleiro da tripulação"
         title="Criar personagem"
         actions={step !== S.revisao && d.seen >= S.detalhes ? <button type="button" className="btn" onClick={() => go(S.revisao)}>Ir para a revisão</button> : undefined}

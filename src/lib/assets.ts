@@ -39,4 +39,8 @@ export const ASSET = {
   scene: (id: string) => `narracao/${id}.jpg`,
   bg: (id: string) => `bg/${id}.jpg`,
   gear: (id: string) => `equipamento/${id}.png`,
+  emblem: (cls: string) => `classes/emblema-${cls}.png`,
+  step: (nome: string) => `criar/etapas/${slug(nome)}.png`,
+  abil: (k: string) => `criar/atributos/${k}.png`,
+  blankPortrait: 'criar/retrato-vazio.jpg',
 }

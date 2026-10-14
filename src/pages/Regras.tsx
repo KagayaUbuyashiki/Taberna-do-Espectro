@@ -34,7 +34,7 @@ export default function Regras() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="Livro de regras · Edição Saga" title="Regras">
+      <PageHeader bg="regras" kicker="Livro de regras · Edição Saga" title="Regras">
         Tabelas de referência rápida do livro (v1.05 PT-BR). Busque qualquer termo para filtrar todas as tabelas de uma vez.
       </PageHeader>
 

@@ -1,5 +1,7 @@
 import clsx from 'clsx'
 import { STEPS, type Problem } from './draft'
+import { AssetImg } from '../../components/ui/AssetImg'
+import { ASSET } from '../../lib/assets'
 
 /** Barra de etapas em estilo console: número + nome; atual em dourado, visitadas clicáveis. */
 export function Barra({ step, seen, probs, go }: { step: number; seen: number; probs: Problem[]; go: (i: number) => void }) {
@@ -28,7 +30,8 @@ export function Barra({ step, seen, probs, go }: { step: number; seen: number; p
                       : 'cursor-default border-transparent text-ash/45',
                 )}
               >
-                <span className="font-mono text-sm">{String(i + 1).padStart(2, '0')}</span>
+                <AssetImg path={ASSET.step(n)} holo className={clsx('h-6 w-6 shrink-0 self-center object-contain', !can && 'opacity-40')}
+                  fallback={<span className="font-mono text-sm">{String(i + 1).padStart(2, '0')}</span>} />
                 <span className="truncate font-display text-base tracking-[.12em]">{n}</span>
                 {can && !cur && (
                   <span className={clsx('ml-auto font-mono text-xs', bad ? 'text-ember' : 'text-gold-dim')} aria-label={bad ? 'pendente' : 'feito'}>

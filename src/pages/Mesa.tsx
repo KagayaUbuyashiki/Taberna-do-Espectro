@@ -37,7 +37,7 @@ export default function Mesa() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="Console de combate" title="Mesa">
+      <PageHeader bg="mesa" kicker="Console de combate" title="Mesa">
         Iniciativa, pontos de vida, limiar de dano e ataques resolvidos contra as defesas, como no capítulo de combate.
       </PageHeader>
 

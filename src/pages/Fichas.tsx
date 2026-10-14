@@ -40,6 +40,7 @@ export default function Fichas() {
   return (
     <div className="space-y-6">
       <PageHeader
+        bg="fichas"
         kicker="Tripulação"
         title="Fichas"
         actions={<>

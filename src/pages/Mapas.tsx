@@ -106,7 +106,7 @@ export default function Mapas() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="Holomesa tática" title="Mapas"
+      <PageHeader bg="mapas" kicker="Holomesa tática" title="Mapas"
         actions={<span className="chip chip-gold font-mono">1 quadrado = 1,5 m</span>}>
         Grade de combate com fichas, paredes, névoa de guerra e régua de alcance. Diagonais contam 1 e 2 quadrados alternados.
       </PageHeader>

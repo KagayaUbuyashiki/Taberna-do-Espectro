@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react'
 import clsx from 'clsx'
 import { Portrait } from '../../components/ui/Portrait'
+import { ClassEmblem } from '../../components/ui/ClassEmblem'
 import { AlienText } from '../../components/AlienText'
 import { XP_TABLE } from '../../data/saga'
 import { has, hasT, type Calc } from '../../rules/engine'
@@ -78,7 +79,12 @@ export function Header({ c, K, onLevelUp, onOpen, onDeleted }: { c: Character; K
 
         <div className="flex min-w-0 flex-col gap-4">
           <div className="min-w-0">
-            <div className="kicker text-base sm:text-xl">{K.sp.name} · {classLine(c)}</div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="kicker text-base sm:text-xl">{K.sp.name} · {classLine(c)}</div>
+              <div className="flex gap-1.5" aria-hidden>
+                {[...new Set(c.cls)].map(id => <ClassEmblem key={id} cls={id} className="h-8 w-8" />)}
+              </div>
+            </div>
             {editName ? (
               <input
                 autoFocus

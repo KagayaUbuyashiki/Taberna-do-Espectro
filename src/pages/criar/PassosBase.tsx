@@ -223,6 +223,7 @@ export function PassoHabilidades({ d, up }: StepProps) {
           const v = c.abil[k]
           return (
             <div key={k} className="flex flex-col items-center gap-1.5 border border-line-2 bg-black/70 p-3 text-center">
+              <AssetImg path={ASSET.abil(k)} holo className="h-12 w-12 object-contain" />
               <span className="font-display text-lg tracking-[.25em] text-gold">{nome}</span>
               {m === 'pontos' ? (
                 <>

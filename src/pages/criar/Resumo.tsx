@@ -3,6 +3,7 @@ import { sgn } from '../../rules/dice'
 import { calc } from '../../rules/engine'
 import type { AbilKey } from '../../rules/types'
 import { Portrait } from '../../components/ui/Portrait'
+import { ClassEmblem } from '../../components/ui/ClassEmblem'
 import { cl, cr, sp, type Draft } from './draft'
 
 /** Painel lateral com o personagem montado até agora, recalculado a cada escolha. */
@@ -17,7 +18,10 @@ export function Resumo({ d }: { d: Draft }) {
         <Portrait species={c.species} src={c.portrait} className="w-24 shrink-0" />
         <div className="min-w-0">
           <div className="truncate font-display text-2xl tracking-[.1em] text-bone">{c.name.trim() || 'Sem nome'}</div>
-          <div className="font-display text-sm tracking-[.2em] text-ash">{sp(c).name} · {cl(c).name} 1</div>
+          <div className="flex items-center gap-2 font-display text-sm tracking-[.2em] text-ash">
+            <ClassEmblem cls={c.cls[0]} className="h-6 w-6" />
+            {sp(c).name} · {cl(c).name} 1
+          </div>
           {d.talent && <div className="mt-1 truncate text-sm text-gold-dim">{d.talent}</div>}
         </div>
       </div>

@@ -57,6 +57,7 @@ export function BridgeBackground({ variant = 'page' }: { variant?: 'home' | 'pag
   const starsImg = useAsset('bg/ponte-estrelas.jpg')
   const planetImg = useAsset('bg/ponte-planeta.png')
   const shipImg = useAsset('bg/ponte-nave.png')
+  const windowImg = useAsset('bg/ponte-janela.png')
   const tile = useMemo(() => (typeof document === 'undefined' ? '' : starTile()), [])
 
   const mx = useMotionValue(0)
@@ -107,7 +108,9 @@ export function BridgeBackground({ variant = 'page' }: { variant?: 'home' | 'pag
           {shipImg ? <img src={shipImg} alt="" className="w-full" /> : <ShipSvg />}
         </motion.div>
       </motion.div>
-      {variant === 'home' ? (
+      {variant === 'home' && windowImg ? (
+        <img src={windowImg} alt="" className="absolute inset-0 hidden h-full w-full object-cover lg:block" />
+      ) : variant === 'home' ? (
         <div className="absolute inset-0 hidden lg:block">
           <div className="absolute left-[46%] top-0 h-full w-[3.2%] skew-x-[22deg] bg-gradient-to-r from-[#121216] to-[#1c1c22] opacity-75" />
           <div className="absolute left-[70%] top-0 h-full w-[3.2%] -skew-x-[22deg] bg-gradient-to-r from-[#1c1c22] to-[#121216] opacity-75" />
