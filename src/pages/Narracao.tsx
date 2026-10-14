@@ -204,7 +204,7 @@ export default function Narracao() {
   const parar = useCallback(() => setTocando(false), [])
   return (
     <div className="space-y-6">
-      <PageHeader kicker={`Holonet · ${location || 'Narração'}`} title="Narração"
+      <PageHeader kicker={`Holonet · ${location || 'Narração'}`} title="Narrar"
         actions={<button type="button" className="btn btn-primary" onClick={() => setTocando(true)}>▶ Abertura</button>}>
         Abertura animada da sessão, cenas para mostrar à mesa, diário da campanha e geradores para improvisar.
       </PageHeader>

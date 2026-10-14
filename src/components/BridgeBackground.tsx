@@ -89,14 +89,17 @@ export function BridgeBackground({ variant = 'page' }: { variant?: 'home' | 'pag
           animation: reduce ? undefined : 'stars-drift 260s linear infinite',
         }}
       />
-      <motion.div className="absolute -bottom-[95vw] left-[-25%] right-[-25%] opacity-80 sm:-bottom-[118vw]" style={{ x: planetX, y: planetY }}>
+      <motion.div
+        className={planetImg ? 'absolute bottom-0 left-[-20%] right-[-20%] translate-y-[68%] opacity-70 [filter:brightness(.42)_saturate(.85)]' : 'absolute -bottom-[95vw] left-[-25%] right-[-25%] opacity-80 sm:-bottom-[118vw]'}
+        style={{ x: planetX, y: planetY }}
+      >
         {planetImg ? (
           <img src={planetImg} alt="" className="mx-auto w-full" />
         ) : (
           <div className="aspect-square w-full rounded-full bg-[radial-gradient(circle_at_50%_0%,#3a260c,#120b04_30%,#000_60%)] shadow-[0_-4px_60px_rgba(255,210,74,.28),inset_0_6px_24px_rgba(255,210,74,.3)]" />
         )}
       </motion.div>
-      <motion.div className="absolute left-[18%] top-[4%] w-[70vw] max-w-[1100px]" style={{ x: shipX, y: shipY }}>
+      <motion.div className={shipImg ? 'absolute right-[2%] top-[3%] w-[58vw] max-w-[980px] opacity-80 [filter:brightness(.8)] lg:right-[-4%]' : 'absolute left-[18%] top-[4%] w-[70vw] max-w-[1100px]'} style={{ x: shipX, y: shipY }}>
         <motion.div
           animate={reduce ? undefined : { x: ['-4vw', '6vw'], y: [0, -10] }}
           transition={{ duration: 70, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}

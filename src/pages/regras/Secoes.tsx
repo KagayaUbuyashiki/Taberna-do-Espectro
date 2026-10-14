@@ -19,9 +19,9 @@ export function SecaoCombate({ f }: { f: Filtro }) {
         <div key={t.id} className="panel min-w-0">
           <Titulo t={t.titulo} code={t.ref} />
           {t.id === 'condicao' && (
-            <ol className="mb-3 grid grid-cols-3 gap-1 sm:grid-cols-6 lg:grid-cols-3 xl:grid-cols-6" aria-label="Passos do curso da condição">
+            <ol className="mb-3 flex flex-wrap gap-1" aria-label="Passos do curso da condição">
               {COND.map((x, i) => (
-                <li key={x.k} className={clsx('border px-1 py-1 text-center font-display text-sm leading-tight tracking-[.1em]',
+                <li key={x.k} className={clsx('border px-2 py-0.5 text-center font-display text-sm leading-tight tracking-[.1em]',
                   i === 0 ? 'border-gold text-gold' : i < 4 ? 'border-line-2 text-bone' : 'border-ember text-ember')}>{x.l}</li>
               ))}
             </ol>
@@ -94,11 +94,13 @@ export function SecaoTalentos({ f }: { f: Filtro }) {
               {r.multi && <span className="chip text-xs">Repetível</span>}
               {r.choice && <span className="chip text-xs">{CHOICE_LABEL[r.choice] ?? r.choice}</span>}
             </div>
+            <p className="mt-1 text-bone/80 sm:hidden">{r.d}</p>
+            {classesDoTalento(r.n).length > 0 && <p className="mt-0.5 text-xs text-ash sm:hidden">Bônus de {classesDoTalento(r.n).join(', ')}</p>}
           </div>
         ) },
         { h: 'Pré-requisitos', c: r => <span className="text-bone/80">{reqTalento(r) || '–'}</span>, className: 'min-w-40' },
-        { h: 'Benefício', c: r => <span className="text-bone/80">{r.d}</span>, className: 'min-w-56' },
-        { h: 'Bônus de', c: r => <span className="text-ash">{classesDoTalento(r.n).join(', ') || '–'}</span>, className: 'min-w-28' },
+        { h: 'Benefício', c: r => <span className="text-bone/80">{r.d}</span>, className: 'min-w-56', largo: true },
+        { h: 'Bônus de', c: r => <span className="text-ash">{classesDoTalento(r.n).join(', ') || '–'}</span>, className: 'min-w-28', largo: true },
       ]} />
     </div>
   )
@@ -112,9 +114,14 @@ export function SecaoAptidoes({ f }: { f: Filtro }) {
         <div key={arv} className="panel min-w-0">
           <Titulo t={arv} code={donosDaArvore(arv).join(' · ').toUpperCase()} />
           <Tabela legenda={`Aptidões: ${arv}`} rows={ts} k={r => r.n} cols={[
-            { h: 'Aptidão', c: r => <span className="font-semibold text-bone">{r.n}{r.multi ? <span className="ml-1 font-mono text-xs text-ash">×{r.multi}</span> : null}</span>, className: 'min-w-36' },
+            { h: 'Aptidão', c: r => (
+              <>
+                <span className="font-semibold text-bone">{r.n}{r.multi ? <span className="ml-1 font-mono text-xs text-ash">×{r.multi}</span> : null}</span>
+                <p className="mt-1 text-bone/80 sm:hidden">{r.d}</p>
+              </>
+            ), className: 'min-w-36' },
             { h: 'Pré-requisitos', c: r => <span className="text-bone/80">{reqAptidao(r) || '–'}</span>, className: 'min-w-32' },
-            { h: 'Efeito', c: r => <span className="text-bone/80">{r.d}</span>, className: 'min-w-56' },
+            { h: 'Efeito', c: r => <span className="text-bone/80">{r.d}</span>, className: 'min-w-56', largo: true },
           ]} />
         </div>
       ))}

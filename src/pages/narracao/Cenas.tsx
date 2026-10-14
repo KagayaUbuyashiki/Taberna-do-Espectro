@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { AssetImg } from '../../components/ui/AssetImg'
-import { ASSET } from '../../lib/assets'
+import { ASSET, useAsset } from '../../lib/assets'
 import { useStore } from '../../store/campaign'
 import { toast } from '../../store/ui'
 import { CENAS } from './dados'
@@ -20,6 +20,23 @@ function SemImagem({ nome, grande }: { nome: string; grande?: boolean }) {
 
 function Imagem({ id, nome, grande, className }: { id: string; nome: string; grande?: boolean; className?: string }) {
   return <AssetImg path={ASSET.scene(id)} alt={nome} className={className ?? 'h-full w-full object-cover'} fallback={<SemImagem nome={nome} grande={grande} />} />
+}
+
+/** Miniatura da faixa: imagem com legenda, ou o cartão escuro com o nome. */
+function Miniatura({ id, nome, ativa, onClick }: { id: string; nome: string; ativa: boolean; onClick: () => void }) {
+  const url = useAsset(ASSET.scene(id))
+  return (
+    <button type="button" role="listitem" aria-pressed={ativa} aria-label={nome} onClick={onClick}
+      className={clsx('group relative aspect-video w-40 shrink-0 snap-start overflow-hidden border bg-black text-left transition-colors sm:w-48',
+        ativa ? 'border-gold' : 'border-line-2 hover:border-gold/70')}>
+      {url ? (
+        <>
+          <img src={url} alt="" loading="lazy" className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100" />
+          <span className={clsx('absolute inset-x-0 bottom-0 bg-black/75 px-2 py-0.5 font-display text-sm tracking-[.18em]', ativa ? 'text-gold' : 'text-bone/85')}>{nome}</span>
+        </>
+      ) : <SemImagem nome={nome} />}
+    </button>
+  )
 }
 
 /** Faixa de cenas: o mestre clica para pôr uma em destaque e pode projetá-la na tela inteira. */
@@ -65,14 +82,7 @@ export function Cenas() {
       </AnimatePresence>
 
       <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2" role="list">
-        {CENAS.map(c => (
-          <button key={c.id} type="button" role="listitem" aria-pressed={sel === c.id} onClick={() => setSel(sel === c.id ? null : c.id)}
-            className={clsx('group relative aspect-video w-40 shrink-0 snap-start overflow-hidden border bg-black text-left transition-colors sm:w-48',
-              sel === c.id ? 'border-gold' : 'border-line-2 hover:border-gold/70')}>
-            <AssetImg path={ASSET.scene(c.id)} alt="" className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100" fallback={<SemImagem nome={c.nome} />} />
-            <span className={clsx('absolute inset-x-0 bottom-0 bg-black/75 px-2 py-0.5 font-display text-sm tracking-[.18em]', sel === c.id ? 'text-gold' : 'text-bone/85')}>{c.nome}</span>
-          </button>
-        ))}
+        {CENAS.map(c => <Miniatura key={c.id} id={c.id} nome={c.nome} ativa={sel === c.id} onClick={() => setSel(sel === c.id ? null : c.id)} />)}
       </div>
 
       {projetar && cena && (

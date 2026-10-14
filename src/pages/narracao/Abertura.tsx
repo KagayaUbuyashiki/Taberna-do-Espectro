@@ -76,15 +76,15 @@ export function Abertura({ crawl, onClose }: { crawl: Campaign['crawl']; onClose
             {ENTRADA}
           </motion.div>
           <motion.div className="pointer-events-none absolute inset-0 flex items-center justify-center"
-            initial={{ opacity: 0, scale: 2.4 }} animate={{ opacity: [1, 1, 0], scale: [2.4, 0.2, 0.05] }}
-            transition={{ delay: 6, duration: 8, times: [0, 0.9, 1], ease: 'easeIn' }}>
+            initial={{ opacity: 0, scale: 1.5 }} animate={{ opacity: [0, 1, 1, 0], scale: [1.5, 1.5, 0.2, 0.05] }}
+            transition={{ delay: 6, duration: 8, times: [0, 0.01, 0.9, 1], ease: 'easeIn' }}>
             <span className="px-4 text-center font-display text-[clamp(2rem,9vw,7rem)] leading-none tracking-[.12em] text-gold [text-shadow:0_0_24px_rgba(255,210,74,.35)]">
               {titulo}
             </span>
           </motion.div>
           <div ref={stage} className="absolute inset-0 flex justify-center overflow-hidden [perspective:360px]">
             <motion.div ref={texto}
-              className="absolute w-[min(780px,86vw)] text-justify font-body text-[clamp(1.1rem,3vw,2.1rem)] font-semibold leading-[1.45] text-gold"
+              className="absolute inset-x-0 mx-auto w-[min(780px,86vw)] text-justify font-body text-[clamp(1.1rem,3vw,2.1rem)] font-semibold leading-[1.45] text-gold"
               style={{ top: '100%', rotateX: 24, transformOrigin: '50% 0' }}
               animate={fim != null ? { top: `-${fim}%` } : undefined}
               transition={{ delay: 9, duration: 70 * ((fim ?? 260) + 100) / 360, ease: 'linear' }}>

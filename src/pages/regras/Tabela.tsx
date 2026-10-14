@@ -1,7 +1,8 @@
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
-export interface Coluna<T> { h: string; c: (r: T) => ReactNode; num?: boolean; className?: string }
+/** `largo`: coluna só aparece de sm para cima (no celular o conteúdo vai para a primeira célula). */
+export interface Coluna<T> { h: string; c: (r: T) => ReactNode; num?: boolean; className?: string; largo?: boolean }
 
 /** Tabela de referência: rola na horizontal no celular, cabeçalho dourado, números em mono. */
 export function Tabela<T>({ cols, rows, k, legenda }: { cols: Coluna<T>[]; rows: readonly T[]; k: (r: T, i: number) => string; legenda?: string }) {
@@ -13,7 +14,7 @@ export function Tabela<T>({ cols, rows, k, legenda }: { cols: Coluna<T>[]; rows:
         <thead>
           <tr>
             {cols.map(c => (
-              <th key={c.h} scope="col" className={clsx('whitespace-nowrap border-b border-line-2 bg-black/50 px-3 py-2 font-display text-base font-normal tracking-[.2em] text-gold', c.num ? 'text-right' : 'text-left')}>{c.h}</th>
+              <th key={c.h} scope="col" className={clsx('whitespace-nowrap border-b border-line-2 bg-black/50 px-3 py-2 font-display text-base font-normal tracking-[.2em] text-gold', c.num ? 'text-right' : 'text-left', c.largo && 'hidden sm:table-cell')}>{c.h}</th>
             ))}
           </tr>
         </thead>
@@ -21,7 +22,7 @@ export function Tabela<T>({ cols, rows, k, legenda }: { cols: Coluna<T>[]; rows:
           {rows.map((r, i) => (
             <tr key={k(r, i)} className="border-b border-line last:border-b-0 odd:bg-black/25 hover:bg-gold/5">
               {cols.map(c => (
-                <td key={c.h} className={clsx('px-3 py-2 align-top', c.num && 'whitespace-nowrap text-right font-mono tabular-nums text-bone', c.className)}>{c.c(r)}</td>
+                <td key={c.h} className={clsx('px-3 py-2 align-top', c.num && 'whitespace-nowrap text-right font-mono tabular-nums text-bone', c.largo && 'hidden sm:table-cell', c.className)}>{c.c(r)}</td>
               ))}
             </tr>
           ))}

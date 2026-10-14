@@ -41,7 +41,7 @@ export default function Regras() {
       <div className="z-10 -mx-4 lg:sticky lg:top-0 space-y-3 border-b border-line-2 bg-void/90 px-4 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
         <div className="flex items-center gap-2">
           <label className="sr-only" htmlFor="regras-busca">Buscar nas regras</label>
-          <input id="regras-busca" type="search" className="input min-w-0 flex-1" value={busca} onChange={e => setBusca(e.target.value)}
+          <input id="regras-busca" type="search" className="input min-w-0 flex-1 [&::-webkit-search-cancel-button]:appearance-none" value={busca} onChange={e => setBusca(e.target.value)}
             placeholder="Buscar: limiar, sabre, Vontade, Wookiee..." autoComplete="off" />
           {busca && <button type="button" className="btn btn-sm btn-ghost shrink-0" onClick={() => setBusca('')}>Limpar</button>}
         </div>
