@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { PLANETAS, PLANETA_BY, TIERS } from '../data/galaxy'
 import { useGalaxy } from '../store/galaxy'
-import { PlanetGlobe } from '../components/galaxy/PlanetGlobe'
+import { PlanetArt } from '../components/galaxy/PlanetArt'
 import { rng } from '../components/galaxy/rng'
 import { MestreToggle, PlanetInfo, TierBadge } from '../components/galaxy/PlanetInfo'
 
@@ -48,7 +48,7 @@ export default function Nave() {
               </Link>
             </div>
           </div>
-          <div className="hidden justify-self-center md:block"><PlanetGlobe planeta={atual} size={240} /></div>
+          <div className="hidden justify-self-center md:block"><PlanetArt planeta={atual} size={240} /></div>
         </div>
       </section>
 
@@ -155,7 +155,7 @@ function Navegacao({ inicial, onClose }: { inicial: string | null; onClose: () =
             <button type="button" onClick={() => setSel(null)} className="absolute right-3 top-3 text-ash hover:text-bone" aria-label="Fechar detalhes">✕</button>
             {conhecido ? (
               <>
-                <div className="flex justify-center py-2"><PlanetGlobe key={p.id} planeta={p} size={200} /></div>
+                <div className="flex justify-center py-2"><PlanetArt key={p.id} planeta={p} size={200} /></div>
                 <PlanetInfo planeta={p} />
               </>
             ) : (

@@ -243,6 +243,14 @@ export const PLANETAS: Planeta[] = [
     descricao: 'Mundo oculto de relâmpagos eternos. O santuário dos Sith Eternos. Só se chega com um navegador Sith.' },
 ]
 
+/** Arte do planeta em public/assets/planetas (ASSETS.md). Nem todo planeta tem imagem. */
+const ARTE: Record<string, string> = { 'mon-cala': 'moncalamari', 'nal-hutta': 'nalhutta', 'yavin-4': 'yavin4' }
+const COM_ARTE = new Set(['alderaan', 'bespin', 'bothawui', 'corellia', 'coruscant', 'dagobah', 'endor', 'geonosis', 'hoth', 'kamino', 'kashyyyk', 'kessel', 'mon-cala', 'mustafar', 'naboo', 'nal-hutta', 'rodia', 'ryloth', 'sullust', 'tatooine', 'trandosha', 'yavin-4'])
+export function artePlaneta(id: string): string | null {
+  return COM_ARTE.has(id) ? `./assets/planetas/${ARTE[id] ?? id}.png` : null
+}
+export const iconeItem = (i: { icone?: string }) => (i.icone ? `./assets/equipamento/${i.icone}.png` : null)
+
 export const PLANETA_BY: Record<string, Planeta> = Object.fromEntries(PLANETAS.map(p => [p.id, p]))
 
 const COLS = 'ABCDEFGHIJKLMNOPQRSTUV'
@@ -283,6 +291,8 @@ export interface Item {
   /** Vendido só nos planetas que o listam em `exclusivos`, ou de onde o minério vem. */
   exclusivo?: boolean
   detalhe?: string
+  /** Ícone em public/assets/equipamento (ASSETS.md). */
+  icone?: string
   /** Para cartas: o que libera. */
   libera?: { planeta?: string; regiao?: RegiaoId }
 }
@@ -298,6 +308,12 @@ const EXCLUSIVOS = new Set(PLANETAS.flatMap(p => p.exclusivos ?? []))
 const ILEGAIS = new Set(['armas pesadas'])
 const TIER_FIXO: Record<string, Tier> = { 'detonador-termal': 4, 'lanca-misseis': 4, 'granada-de-fragmento': 3 }
 
+function iconeDaArma(grupo: string, nome: string) {
+  if (/granada|detonador/i.test(nome)) return 'granadas'
+  return ({ 'armas simples': 'armas-simples', pistolas: 'pistolas', rifles: 'rifles', 'armas pesadas': 'armas-pesadas', 'sabres de luz': 'sabres-de-luz', 'armas de ataque físico avançadas': 'ataque-fisico-avancado' } as Record<string, string>)[grupo] ?? 'armas-simples'
+}
+const ICONE_EQUIP: [RegExp, string][] = [[/medpac|médico|cirúrgico|bacta/i, 'medpac'], [/datapad|cartões|holoprojetor|codificador/i, 'datapad'], [/ferramentas|segurança|campo/i, 'kit-ferramentas'], [/binóculo|mira/i, 'macrobinoculos'], [/crédito/i, 'creditos']]
+
 const armas: Item[] = WEAPONS
   .filter(w => w.cost > 0 && w.g !== 'sabres de luz') // sabres só via kyber + pedido ao mestre
   .map(w => {
@@ -305,7 +321,7 @@ const armas: Item[] = WEAPONS
     return {
       id, nome: w.n, categoria: 'arma' as const, tier: TIER_FIXO[id] ?? tierPorPreco(w.cost), preco: w.cost,
       ilegal: ILEGAIS.has(w.g) || id === 'detonador-termal', exclusivo: EXCLUSIVOS.has(id),
-      detalhe: `${w.dmg} · ${w.type}`,
+      detalhe: `${w.dmg} · ${w.type}`, icone: iconeDaArma(w.g, w.n),
     }
   })
 
@@ -314,11 +330,13 @@ const armaduras: Item[] = ARMORS.map(a => {
   return {
     id, nome: a.n, categoria: 'armadura' as const, tier: tierPorPreco(a.cost), preco: a.cost, exclusivo: EXCLUSIVOS.has(id),
     detalhe: `${a.cat} · Ref +${a.ref} · Fort +${a.fort} · Des máx +${a.maxDex}`,
+    icone: a.cat === 'leve' ? 'armadura-leve' : a.cat === 'média' ? 'armadura-media' : 'armadura-pesada',
   }
 })
 
 const equipamentos: Item[] = (GEAR as [string, number, number][]).map(([n, cost, w]) => ({
   id: slug(n), nome: n, categoria: 'equipamento' as const, tier: tierPorPreco(cost), preco: cost, peso: w,
+  icone: ICONE_EQUIP.find(([re]) => re.test(n))?.[1],
 }))
 
 const minerios: Item[] = (Object.entries(MINERIOS) as [MinerioId, (typeof MINERIOS)[MinerioId]][])

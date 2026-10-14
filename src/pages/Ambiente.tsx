@@ -2,13 +2,13 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import {
-  ACOES, FUNCOES, ITENS, MATERIAIS, MINERIOS, PLANETA_BY, acoesPadrao, lojaDoPlaneta, planetasDaCarta,
+  ACOES, FUNCOES, ITENS, MATERIAIS, MINERIOS, PLANETA_BY, acoesPadrao, iconeItem, lojaDoPlaneta, planetasDaCarta,
   type AcaoId, type CategoriaItem, type Item, type Tag,
 } from '../data/galaxy'
 import { useStore } from '../store/campaign'
 import { acoesDoAmbiente, novoId, useGalaxy, type Pedido, type TipoPedido } from '../store/galaxy'
 import { WantedPoster } from '../components/WantedPoster'
-import { PlanetGlobe } from '../components/galaxy/PlanetGlobe'
+import { PlanetArt } from '../components/galaxy/PlanetArt'
 import { MestreToggle, TagList, TierBadge } from '../components/galaxy/PlanetInfo'
 import type { Character } from '../rules/types'
 
@@ -46,7 +46,7 @@ export default function Ambiente() {
       {/* Cabeçalho do ambiente */}
       <section className="border-l-4 border-blood bg-panel">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[auto_1fr]">
-          <div className="justify-self-center"><PlanetGlobe planeta={planeta} size={170} /></div>
+          <div className="justify-self-center"><PlanetArt planeta={planeta} size={170} /></div>
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="font-mono text-xs uppercase tracking-[.3em] text-ember">Ambiente</p>
@@ -75,7 +75,7 @@ export default function Ambiente() {
             {lista.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
-        {char && <p className="font-mono">Créditos: <b className="text-bone">{cr(char.credits)}</b></p>}
+        {char && <p className="flex items-center gap-2 font-mono"><IconeItem item={{ icone: 'creditos' } as Item} />Créditos: <b className="text-bone">{cr(char.credits)}</b></p>}
       </section>
 
       {/* Ações liberadas */}
@@ -236,6 +236,7 @@ function Loja({ itens, char, pedir }: { itens: Item[]; char: Character | null; p
               return (
                 <tr key={i.id} className="border-b border-line/50">
                   <td className="py-2 pr-3 font-semibold text-bone">
+                    <IconeItem item={i} />
                     {i.nome}
                     {i.exclusivo && <span className="ml-2 border border-ember px-1 font-mono text-[10px] uppercase text-ember">exclusivo</span>}
                     {i.ilegal && <span className="ml-2 border border-line px-1 font-mono text-[10px] uppercase text-ash">ilegal</span>}
@@ -257,6 +258,14 @@ function Loja({ itens, char, pedir }: { itens: Item[]; char: Character | null; p
       </div>
     </div>
   )
+}
+
+/** Ícone do item (public/assets/equipamento). Some se a imagem ainda não chegou. */
+function IconeItem({ item }: { item: Item }) {
+  const src = iconeItem(item)
+  const [ok, setOk] = useState(true)
+  if (!src || !ok) return null
+  return <img src={src} alt="" onError={() => setOk(false)} className="mr-2 inline-block h-8 w-8 object-contain align-middle mix-blend-screen" />
 }
 
 function Vender({ char, pedir }: { char: Character | null; pedir: PedirFn }) {
