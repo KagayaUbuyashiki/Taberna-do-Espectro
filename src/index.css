@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* Tokens do tema. O visual escolhido entre as propostas troca só estes valores. */
+@theme {
+  --color-void: #0a0708;
+  --color-hull: #140d0e;
+  --color-panel: #1b1112;
+  --color-line: #3a2224;
+  --color-blood: #8b0a0f;
+  --color-ember: #c4141c;
+  --color-bone: #efe6d2;
+  --color-ash: #9a8f80;
+  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Chakra Petch", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
+}
+
+html, body, #root { height: 100%; }
+body { @apply bg-void text-bone font-body antialiased; }
