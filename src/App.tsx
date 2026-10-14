@@ -6,9 +6,16 @@ import { NAV } from './nav'
 import Ambiente from './pages/Ambiente'
 import Nave from './pages/Nave'
 import Mestre from './pages/Mestre'
+import Home from './pages/Home'
+import Mesa from './pages/Mesa'
+import Criar from './pages/Criar'
+import Narracao from './pages/Narracao'
+import Regras from './pages/Regras'
+import Fichas from './pages/Fichas'
+import Mapas from './pages/Mapas'
 import { iniciarSync } from './store/galaxy'
 
-const PAGES: Partial<Record<string, React.ReactNode>> = { '/ambiente': <Ambiente />, '/nave': <Nave />, '/mestre': <Mestre /> }
+const PAGES: Partial<Record<string, React.ReactNode>> = { '/': <Home />, '/criar': <Criar />, '/fichas': <Fichas />, '/mesa': <Mesa />, '/mapas': <Mapas />, '/narracao': <Narracao />, '/regras': <Regras />, '/ambiente': <Ambiente />, '/nave': <Nave />, '/mestre': <Mestre /> }
 
 // HashRouter: funciona no GitHub Pages sem configuração de servidor.
 export default function App() {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { PageHeader } from '../components/ui/PageHeader'
 import clsx from 'clsx'
 import { ARMORS, WEAPONS } from '../data/saga'
 import { ACOES, ITENS, MATERIAIS, PLANETAS, PLANETA_BY, TAGS, acoesPadrao, type AcaoId, type Tag } from '../data/galaxy'
@@ -30,14 +31,9 @@ export default function Mestre() {
 
   return (
     <div className="space-y-6">
-      <section className="flex flex-wrap items-end justify-between gap-4 border-l-4 border-gold bg-panel p-6">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[.3em] text-gold">Área do mestre</p>
-          <h1 className="font-display text-5xl font-extrabold uppercase">Mestre</h1>
-          {g.campanha && <p className="mt-1 font-mono text-sm text-ash">Mesa {g.campanha.name} · código <b className="text-bone">{g.campanha.code}</b></p>}
-        </div>
-        {podeSerMestre && <MestreToggle />}
-      </section>
+      <PageHeader bg="mestre" kicker="Área do mestre" title="Mestre" actions={podeSerMestre ? <MestreToggle /> : undefined}>
+        {g.campanha && <span className="font-mono text-sm">Mesa {g.campanha.name} · código <b className="text-bone">{g.campanha.code}</b></span>}
+      </PageHeader>
 
       {!g.mestre ? (
         <>

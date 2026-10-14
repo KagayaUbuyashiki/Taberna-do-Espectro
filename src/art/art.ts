@@ -1,0 +1,61 @@
+/* Arte original em SVG (retratos de espécie, emblemas de classe). Gerada como string para uso com dangerouslySetInnerHTML. */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SPECIES, SPECIES_BY } from '../data/saga'
+
+  const shade = (hex: string, amt: number)=>{ // amt -1..1
+    const n = parseInt(hex.slice(1),16); const r=n>>16,g=(n>>8)&255,b=n&255;
+    const f = (v: number)=>Math.max(0,Math.min(255,Math.round(amt<0? v*(1+amt) : v+(255-v)*amt)));
+    return '#'+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,'0')).join('');
+  };
+  let uid=0;
+  function frame(inner: string, opts: { cls?: string; label?: string } = {}){
+    const id='h'+(uid++);
+    return `<svg viewBox="0 0 100 100" class="${opts.cls||'portrait'}" role="img" aria-label="${opts.label||''}">
+<defs><radialGradient id="${id}g" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#2a2414"/><stop offset="1" stop-color="#08070a"/></radialGradient>
+<pattern id="${id}s" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#ffd24a" opacity=".06"/></pattern></defs>
+<rect width="100" height="100" rx="6" fill="url(#${id}g)"/>${inner}<rect width="100" height="100" rx="6" fill="url(#${id}s)"/>
+<rect x="1" y="1" width="98" height="98" rx="6" fill="none" stroke="#f5b83d" stroke-opacity=".35"/></svg>`;
+  }
+  function eyes(y: number,col='#111',sp=9,r=2.6){return `<ellipse cx="${50-sp}" cy="${y}" rx="${r}" ry="${r*0.8}" fill="${col}"/><ellipse cx="${50+sp}" cy="${y}" rx="${r}" ry="${r*0.8}" fill="${col}"/>`;}
+  const body = (c: string)=>`<path d="M18 100 C20 80 34 74 50 74 C66 74 80 80 82 100Z" fill="${shade(c,-0.45)}"/><path d="M40 74 L50 86 L60 74" fill="none" stroke="${shade(c,-0.2)}" stroke-width="2"/>`;
+  const cloak = '<path d="M14 100 C16 78 30 70 50 72 C70 70 84 78 86 100Z" fill="#4a3a2a"/><path d="M38 72 L50 92 L62 72" fill="#7a6248"/>';
+  function head(s: any){
+    const L=s.look||{}, k=L.kind, sk=L.skin||'#c99a78', dk=shade(sk,-0.3), lt=shade(sk,0.18);
+    switch(k){
+      case 'human': return cloak+`<ellipse cx="50" cy="46" rx="17" ry="21" fill="${sk}"/><path d="M33 42 C33 22 67 22 67 42 C64 32 56 30 50 30 C42 30 36 33 33 42Z" fill="${L.hair}"/>${eyes(47,'#2a1a10',7,2)}<path d="M45 59 Q50 61 55 59" stroke="${dk}" stroke-width="1.4" fill="none"/>`;
+      case 'bothan': return body('#6a5a7a')+`<ellipse cx="50" cy="48" rx="18" ry="20" fill="${sk}"/><path d="M33 38 L22 22 L38 32Z M67 38 L78 22 L62 32Z" fill="${L.hair}"/><path d="M38 58 Q50 76 62 58 Q50 66 38 58Z" fill="${L.hair}"/>${eyes(45,'#1a1208',7,2.4)}<path d="M47 52 L50 55 L53 52" fill="${dk}"/>`;
+      case 'cerean': return body('#5a6a8a')+`<path d="M34 50 C30 10 70 10 66 50 C66 64 58 70 50 70 C42 70 34 64 34 50Z" fill="${sk}"/><path d="M36 30 C40 12 60 12 64 30" fill="${lt}"/><path d="M34 52 L30 64 M66 52 L70 64" stroke="${L.hair}" stroke-width="3"/>${eyes(48,'#2a2a2a',7,2)}<path d="M38 62 Q50 70 62 62 L60 70 Q50 78 40 70Z" fill="${L.hair}"/>`;
+      case 'duros': return body('#3a4a6a')+`<path d="M34 44 C34 26 66 26 66 44 C66 62 58 70 50 70 C42 70 34 62 34 44Z" fill="${sk}"/><ellipse cx="41" cy="46" rx="5.5" ry="4" fill="${L.eye}"/><ellipse cx="59" cy="46" rx="5.5" ry="4" fill="${L.eye}"/><path d="M47 60 L53 60" stroke="${dk}" stroke-width="1.5"/><path d="M26 30 L74 30 L70 24 L30 24Z" fill="#3a3530"/><ellipse cx="50" cy="24" rx="20" ry="4" fill="#4a453f"/>`;
+      case 'ewok': return `<ellipse cx="50" cy="94" rx="30" ry="18" fill="${L.hair}"/><circle cx="50" cy="54" r="22" fill="${L.hair}"/><path d="M28 52 C26 26 74 26 72 52 C68 36 32 36 28 52Z" fill="#a8743a"/><path d="M30 40 L24 30 L36 34Z M70 40 L76 30 L64 34Z" fill="#a8743a"/><ellipse cx="50" cy="60" rx="10" ry="8" fill="${shade(L.hair,0.25)}"/>${eyes(51,'#0a0705',8,3.2)}<ellipse cx="50" cy="58" rx="3" ry="2" fill="#1a110a"/>`;
+      case 'gamorrean': return body('#5a4a3a')+`<ellipse cx="50" cy="50" rx="22" ry="20" fill="${sk}"/><path d="M28 40 L22 30 L34 36Z M72 40 L78 30 L66 36Z" fill="${dk}"/><ellipse cx="50" cy="58" rx="10" ry="7" fill="${lt}"/><circle cx="46" cy="58" r="1.6" fill="#222"/><circle cx="54" cy="58" r="1.6" fill="#222"/>${eyes(45,'#200',8,1.8)}<path d="M40 64 L38 58 M60 64 L62 58" stroke="#efe8d0" stroke-width="2.5"/>`;
+      case 'gungan': return body('#4a5a3a')+`<ellipse cx="50" cy="50" rx="16" ry="20" fill="${sk}"/><path d="M36 40 C24 50 22 72 26 90 L32 88 C30 72 32 56 38 48Z M64 40 C76 50 78 72 74 90 L68 88 C70 72 68 56 62 48Z" fill="${dk}"/><circle cx="43" cy="32" r="5" fill="${lt}"/><circle cx="57" cy="32" r="5" fill="${lt}"/><circle cx="43" cy="32" r="2.4" fill="#5a3a10"/><circle cx="57" cy="32" r="2.4" fill="#5a3a10"/><path d="M38 56 Q50 74 62 56" fill="${dk}"/>`;
+      case 'ithorian': return body('#6a4a3a')+`<path d="M50 74 C44 60 44 50 46 40 L54 40 C56 50 56 60 50 74Z" fill="${sk}"/><path d="M22 34 C22 24 78 24 78 34 C78 42 22 42 22 34Z" fill="${sk}"/><circle cx="24" cy="33" r="4" fill="#1a1a10"/><circle cx="76" cy="33" r="4" fill="#1a1a10"/><path d="M30 30 L70 30" stroke="${lt}" stroke-width="2"/><path d="M44 62 Q50 66 56 62" stroke="${dk}" stroke-width="2" fill="none"/>`;
+      case 'keldor': return cloak+`<ellipse cx="50" cy="46" rx="17" ry="21" fill="${sk}"/><path d="M33 44 C33 26 67 26 67 44 L64 50 L36 50Z" fill="${dk}"/><rect x="34" y="40" width="32" height="9" rx="4" fill="#1a1a1a"/><rect x="36" y="42" width="12" height="5" rx="2" fill="#3fa9d8"/><rect x="52" y="42" width="12" height="5" rx="2" fill="#3fa9d8"/><path d="M40 56 L60 56 L58 66 L42 66Z" fill="#3a3a3a"/><path d="M44 60 L56 60 M44 63 L56 63" stroke="#888" stroke-width="1"/>`;
+      case 'moncal': return body('#3a5a7a')+`<path d="M32 60 C28 30 40 18 50 18 C60 18 72 30 68 60 C64 70 36 70 32 60Z" fill="${sk}"/><circle cx="34" cy="44" r="6" fill="#e8d070"/><circle cx="66" cy="44" r="6" fill="#e8d070"/><circle cx="34" cy="44" r="3" fill="#2a1a0a"/><circle cx="66" cy="44" r="3" fill="#2a1a0a"/><path d="M42 62 Q50 66 58 62" stroke="${dk}" stroke-width="2" fill="none"/><path d="M40 30 Q50 24 60 30" stroke="${lt}" stroke-width="2" fill="none"/>`;
+      case 'quarren': return body('#4a4a6a')+`<path d="M34 44 C30 20 70 20 66 44 C64 52 36 52 34 44Z" fill="${sk}"/>${eyes(40,'#1a3a5a',9,3)}<path d="M38 50 C36 64 38 80 40 88 M45 50 C44 66 45 80 46 90 M55 50 C56 66 55 80 54 90 M62 50 C64 64 62 80 60 88" stroke="${dk}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      case 'rodian': return body('#4a3a5a')+`<path d="M34 44 C34 24 66 24 66 44 C66 58 56 70 50 70 C44 70 34 58 34 44Z" fill="${sk}"/><ellipse cx="40" cy="44" rx="7" ry="9" fill="${L.eye}"/><ellipse cx="60" cy="44" rx="7" ry="9" fill="${L.eye}"/><ellipse cx="38" cy="41" rx="2" ry="2.5" fill="#6aa0d8" opacity=".6"/><ellipse cx="58" cy="41" rx="2" ry="2.5" fill="#6aa0d8" opacity=".6"/><path d="M50 60 L50 68" stroke="${dk}" stroke-width="3" stroke-linecap="round"/><path d="M38 26 Q34 14 30 16 M62 26 Q66 14 70 16" stroke="${dk}" stroke-width="2" fill="none"/><circle cx="30" cy="16" r="2" fill="${dk}"/><circle cx="70" cy="16" r="2" fill="${dk}"/>`;
+      case 'sullustan': return body('#5a5a4a')+`<ellipse cx="50" cy="48" rx="19" ry="20" fill="${sk}"/><path d="M31 48 C26 58 30 66 38 66 M69 48 C74 58 70 66 62 66" stroke="${dk}" stroke-width="3" fill="none"/>${eyes(44,'#0a0a0a',9,4.5)}<path d="M28 38 C24 34 24 26 30 26 M72 38 C76 34 76 26 70 26" stroke="${dk}" stroke-width="3" fill="none"/><path d="M45 58 Q50 60 55 58" stroke="${dk}" stroke-width="1.5" fill="none"/>`;
+      case 'trandoshan': return body('#6a5a3a')+`<path d="M34 46 C34 26 66 26 66 46 C66 58 60 68 50 70 C40 68 34 58 34 46Z" fill="${sk}"/><path d="M38 34 L62 34 M36 40 L64 40" stroke="${dk}" stroke-width="1.2" opacity=".6"/><ellipse cx="41" cy="46" rx="4" ry="3" fill="#e0a020"/><ellipse cx="59" cy="46" rx="4" ry="3" fill="#e0a020"/><rect x="40.5" y="44" width="1" height="4" fill="#111"/><rect x="58.5" y="44" width="1" height="4" fill="#111"/><path d="M42 60 L58 60" stroke="${dk}" stroke-width="2"/><path d="M44 60 L45 63 L46 60 M54 60 L55 63 L56 60" fill="#eee"/>`;
+      case 'twilek': return body('#5a3a5a')+`<path d="M36 34 C30 50 26 72 30 92 L38 92 C36 70 38 52 42 40Z" fill="${dk}"/><path d="M64 34 C68 50 64 66 60 76 L54 74 C58 64 60 50 58 40Z" fill="${dk}"/><ellipse cx="50" cy="46" rx="16" ry="20" fill="${sk}"/><path d="M34 36 C36 20 64 20 66 36" fill="${lt}"/>${eyes(46,'#2a0a2a',7,2.2)}<path d="M45 57 Q50 60 55 57" stroke="${dk}" stroke-width="1.5" fill="none"/><path d="M32 40 L68 40" stroke="#c9a040" stroke-width="2"/>`;
+      case 'wookiee': return `<ellipse cx="50" cy="96" rx="36" ry="22" fill="${L.hair}"/><path d="M60 74 L84 100" stroke="#5a4a30" stroke-width="6"/><path d="M30 50 C28 20 72 20 70 50 C70 66 62 76 50 76 C38 76 30 66 30 50Z" fill="${L.hair}"/><path d="M34 34 C40 26 60 26 66 34 C60 30 40 30 34 34Z" fill="${shade(L.hair,0.2)}"/><ellipse cx="50" cy="58" rx="9" ry="8" fill="${shade(L.hair,-0.3)}"/>${eyes(45,'#0a0a10',8,2.2)}<ellipse cx="50" cy="55" rx="3" ry="2" fill="#120a05"/><path d="M44 64 Q50 66 56 64" stroke="#120a05" stroke-width="1.5" fill="none"/>`;
+      case 'zabrak': return cloak+`<ellipse cx="50" cy="46" rx="17" ry="21" fill="${sk}"/><path d="M38 34 L40 26 L42 34Z M46 30 L48 22 L50 30Z M52 30 L54 22 L56 30Z M58 34 L60 26 L62 34Z" fill="#e8dcc0"/><path d="M42 40 L38 52 M58 40 L62 52 M46 62 L44 68 M54 62 L56 68" stroke="#3a1a1a" stroke-width="1.6"/>${eyes(47,'#a02020',7,2)}<path d="M45 59 Q50 61 55 59" stroke="${dk}" stroke-width="1.4" fill="none"/>`;
+    }
+    return '';
+  }
+  function avatar(spId: string){ const s=SPECIES_BY[spId]||SPECIES[0]; return frame(head(s),{label:s.name}); }
+
+  const EMB: Record<string, string> = {
+    jedi:`<path d="M50 14 L54 40 L50 86 L46 40Z" fill="currentColor"/><path d="M50 40 C30 38 18 50 14 66 C26 58 36 56 46 58Z M50 40 C70 38 82 50 86 66 C74 58 64 56 54 58Z" fill="currentColor" opacity=".85"/><circle cx="50" cy="40" r="6" fill="none" stroke="currentColor" stroke-width="3"/>`,
+    nobre:`<path d="M20 70 L26 34 L38 52 L50 24 L62 52 L74 34 L80 70Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><rect x="20" y="74" width="60" height="7" fill="currentColor"/><circle cx="50" cy="24" r="4" fill="currentColor"/>`,
+    vigarista:`<rect x="18" y="26" width="34" height="34" rx="5" transform="rotate(-14 35 43)" fill="none" stroke="currentColor" stroke-width="4"/><rect x="46" y="40" width="34" height="34" rx="5" transform="rotate(12 63 57)" fill="currentColor"/><circle cx="30" cy="38" r="3" fill="currentColor"/><circle cx="40" cy="48" r="3" fill="currentColor"/><circle cx="56" cy="50" r="3" fill="#0a0f1a"/><circle cx="70" cy="64" r="3" fill="#0a0f1a"/><circle cx="63" cy="57" r="3" fill="#0a0f1a"/>`,
+    batedor:`<circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="4"/><path d="M50 22 L56 50 L50 78 L44 50Z" fill="currentColor"/><path d="M22 50 L78 50" stroke="currentColor" stroke-width="2"/><circle cx="50" cy="50" r="5" fill="#0a0f1a" stroke="currentColor" stroke-width="2"/>`,
+    soldado:`<path d="M24 46 C24 24 76 24 76 46 L76 62 L64 74 L58 62 L42 62 L36 74 L24 62Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M32 46 L46 46 L46 54 L32 52Z M68 46 L54 46 L54 54 L68 52Z" fill="currentColor"/><path d="M50 30 L50 40" stroke="currentColor" stroke-width="4"/>`
+  };
+  function emblem(cls: string){ return `<svg viewBox="0 0 100 100" class="emblem" aria-hidden="true">${EMB[cls]||''}</svg>`; }
+
+  function saber(color='#4fc3ff'){return `<svg viewBox="0 0 120 12" class="ico-saber" aria-hidden="true"><rect x="2" y="3" width="30" height="6" rx="1.5" fill="#9aa4b4"/><rect x="8" y="2" width="3" height="8" fill="#3a4250"/><rect x="18" y="2" width="2" height="8" fill="#3a4250"/><rect x="32" y="4" width="86" height="4" rx="2" fill="#fff"/><rect x="32" y="2.5" width="86" height="7" rx="3.5" fill="${color}" opacity=".45"/></svg>`;}
+  function blaster(){return `<svg viewBox="0 0 60 30" class="ico-blaster" aria-hidden="true"><path d="M4 8 L46 8 L50 12 L56 12 L56 15 L30 15 L28 26 L18 26 L20 15 L4 15Z" fill="currentColor"/><rect x="24" y="4" width="14" height="4" fill="currentColor" opacity=".7"/></svg>`;}
+
+
+  
+export const ART = { avatar, emblem, saber, blaster, shade }

@@ -1,23 +1,73 @@
 @import "tailwindcss";
 
-/* Tokens do tema. O visual escolhido entre as propostas troca só estes valores. */
+/* Tema "Ponte de Comando" (proposta 14): preto, dourado e osso. */
 @theme {
-  --color-void: #0a0708;
-  --color-hull: #140d0e;
-  --color-panel: #1b1112;
-  --color-line: #3a2224;
+  --color-void: #000000;
+  --color-hull: #07080b;
+  --color-panel: #0d0d10;
+  --color-console: #141418;
+  --color-line: #2a2618;
+  --color-line-2: #3b3624;
+  --color-gold: #ffd24a;
+  --color-gold-dim: #e2a417;
+  --color-bone: #efe6d2;
+  --color-ash: #8a8578;
   --color-blood: #8b0a0f;
   --color-ember: #c4141c;
-  --color-bone: #efe6d2;
-  --color-ash: #9a8f80;
-  --font-display: "Saira Condensed", "Arial Narrow", sans-serif;
-  --font-body: "Chakra Petch", system-ui, sans-serif;
-  --font-mono: "Share Tech Mono", ui-monospace, monospace;
-  --font-poster: "Bebas Neue", "Arial Narrow", sans-serif;
+  --color-holo: #4fc3ff;
+  --color-rebel: #5fd38a;
   --color-parchment: #efe6d2;
   --color-ink: #1a140a;
   --color-wanted-red: #8b0a0f;
+
+  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-body: "Libre Franklin", system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
+  --font-poster: "Bebas Neue", "Arial Narrow", sans-serif;
+
+  --animate-blink: blink 2.4s ease-in-out infinite;
+  @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
 }
 
-html, body, #root { height: 100%; }
+html, body, #root { min-height: 100%; }
 body { @apply bg-void text-bone font-body antialiased; }
+::selection { background: var(--color-gold); color: #000; }
+
+@layer components {
+  /* Título em contorno dourado, a assinatura do visual */
+  .title-outline {
+    @apply font-body font-black uppercase leading-[.86] tracking-tight;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--color-gold);
+  }
+  .kicker { @apply font-display text-xl tracking-[.5em] text-gold; }
+  .panel {
+    @apply relative border border-line-2 bg-panel/90 p-4 backdrop-blur-sm;
+  }
+  .panel-title { @apply font-display text-2xl tracking-[.15em] text-gold; }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border-2 border-gold px-5 py-2 font-display text-lg tracking-[.22em] text-gold transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary { @apply bg-gold text-black hover:bg-gold-dim hover:border-gold-dim; }
+  .btn-sm { @apply px-3 py-1 text-base tracking-[.15em]; }
+  .btn-ghost { @apply border-line-2 text-ash hover:border-gold hover:text-gold hover:bg-transparent; }
+  .btn-danger { @apply border-ember text-ember hover:bg-ember/10; }
+  .field { @apply flex flex-col gap-1 font-display text-sm tracking-[.2em] text-ash; }
+  .input {
+    @apply w-full border border-line-2 bg-black/70 px-3 py-2 font-body text-base tracking-normal text-bone outline-none focus:border-gold;
+  }
+  .chip { @apply inline-flex items-center gap-1 border border-line-2 px-2 py-0.5 font-display text-sm tracking-[.15em] text-ash; }
+  .chip-gold { @apply border-gold text-gold; }
+  .stat { @apply border border-line-2 bg-black/60 px-2 py-1.5 text-center; }
+  .stat small { @apply block font-display text-xs tracking-[.25em] text-ash; }
+  .stat b { @apply block font-display text-3xl font-normal leading-none text-bone; }
+  .scanlines { background-image: repeating-linear-gradient(0deg, rgba(255,210,74,.10) 0 1px, transparent 1px 3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Faixa de luz que percorre os hologramas */
+@keyframes holo-sweep { 0% { transform: translateY(0) } 100% { transform: translateY(400%) } }
+.holo-sweep { animation: holo-sweep 4.5s linear infinite; }

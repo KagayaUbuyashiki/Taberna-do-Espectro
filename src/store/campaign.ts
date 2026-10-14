@@ -30,6 +30,7 @@ interface State {
   patchCampaign: (fn: (c: Campaign) => Campaign) => void
   pushRoll: (r: Omit<RollEntry, 't'>) => RollEntry
   clearLog: () => void
+  patchRoll: (t: number, patch: Partial<RollEntry>) => void
 }
 
 export const useStore = create<State>()(
@@ -54,6 +55,7 @@ export const useStore = create<State>()(
         return entry
       },
       clearLog: () => set({ log: [] }),
+      patchRoll: (t, patch) => set(s => ({ log: s.log.map(l => (l.t === t ? { ...l, ...patch } : l)) })),
     }),
     { name: 'taberna.v1', partialize: s => ({ chars: s.chars, campaign: s.campaign, current: s.current }) },
   ),

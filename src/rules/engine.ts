@@ -65,7 +65,9 @@ export function calc(c: Character) {
   const cond = COND[c.cond || 0]
   const cp = cond.p
   const da = has(c, 'Defesas Aprimoradas') ? 1 : 0
-  const ar = c.armor ? ARMOR_BY[c.armor] : null
+  // Armadura personalizada (feita pelo mestre) substitui os números do modelo base.
+  const ap = c.armaduraPersonalizada
+  const ar = ap ? { n: ap.nome, cat: ap.cat, ref: ap.ref, fort: ap.fort, maxDex: ap.maxDex, cost: 0 } : c.armor ? ARMOR_BY[c.armor] : null
   const arProf = ar ? has(c, `Proficiência em Armadura (${ar.cat})`) : true
   const skinBonus = ar && arProf && hasT(c, 'Segunda Pele') ? 1 : 0
   let refBase = lvl

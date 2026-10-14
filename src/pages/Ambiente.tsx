@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { PageHeader } from '../components/ui/PageHeader'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import {
@@ -43,17 +44,12 @@ export default function Ambiente() {
 
   return (
     <div className="space-y-6">
+      <PageHeader bg="ambiente" kicker={local ? `Ambiente · ${planeta.nome}` : 'Ambiente'} title={local ? local.nome : planeta.nome} actions={<MestreToggle />} />
       {/* Cabeçalho do ambiente */}
       <section className="border-l-4 border-gold bg-panel">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[auto_1fr]">
           <div className="justify-self-center"><PlanetArt planeta={planeta} size={170} /></div>
           <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="font-mono text-xs uppercase tracking-[.3em] text-gold">Ambiente</p>
-              <MestreToggle />
-            </div>
-            <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{local ? local.nome : planeta.nome}</h1>
-            {local && <p className="font-display uppercase tracking-[.2em] text-ash">{planeta.nome}</p>}
             <div className="flex flex-wrap items-center gap-2"><TierBadge tier={planeta.tier} /><TagList tags={tags} /></div>
             <p className="max-w-3xl leading-relaxed">{local?.nota || planeta.descricao}</p>
             <div className="flex flex-wrap gap-2 pt-1">
