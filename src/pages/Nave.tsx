@@ -1,4 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react'
+import { PageHeader } from '../components/ui/PageHeader'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { PLANETAS, PLANETA_BY, TIERS } from '../data/galaxy'
@@ -22,18 +23,14 @@ export default function Nave() {
 
   return (
     <div className="space-y-6">
+      <PageHeader bg="nave" kicker="Nave · Computador de bordo" title={g.nomeNave} actions={<MestreToggle />} />
       <section className="relative overflow-hidden border-l-4 border-gold bg-panel">
         <div className="grid items-center gap-6 p-6 md:grid-cols-[1fr_auto]">
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="font-mono text-xs uppercase tracking-[.3em] text-gold">Nave · Computador de bordo</p>
-              <MestreToggle />
-            </div>
-            {g.mestre ? (
-              <input value={g.nomeNave} onChange={e => g.setNomeNave(e.target.value)} aria-label="Nome da nave"
-                className="w-full border-b border-line bg-transparent font-display text-5xl font-extrabold uppercase outline-none focus:border-gold" />
-            ) : (
-              <h1 className="font-display text-5xl font-extrabold uppercase">{g.nomeNave}</h1>
+            {g.mestre && (
+              <label className="field max-w-sm">Nome da nave
+                <input value={g.nomeNave} onChange={e => g.setNomeNave(e.target.value)} className="input" />
+              </label>
             )}
             <p className="text-lg">Em órbita de <b className="text-bone">{atual.nome}</b> <span className="text-ash">· {atual.terreno}</span></p>
             <TierBadge tier={atual.tier} />

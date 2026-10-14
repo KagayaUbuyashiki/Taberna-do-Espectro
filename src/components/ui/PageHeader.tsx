@@ -10,8 +10,8 @@ export function PageHeader({ kicker, title, children, actions, bg }: { kicker: s
   return (
     <header className="relative mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
       {img && (
-        <div aria-hidden className="pointer-events-none absolute -inset-y-6 -right-4 left-[18%] -z-10 overflow-hidden sm:-right-8 lg:-right-12 lg:-top-10">
-          <img src={img} alt="" className="h-full w-full object-cover object-center opacity-55 [mask-image:linear-gradient(to_right,transparent,black_45%),linear-gradient(to_bottom,black_60%,transparent)] [mask-composite:intersect]" />
+        <div aria-hidden className="pointer-events-none absolute -inset-y-6 -right-4 left-[35%] sm:left-[18%] -z-10 overflow-hidden sm:-right-8 lg:-right-12 lg:-top-10">
+          <img src={img} alt="" className="h-full w-full object-cover object-center opacity-30 [filter:saturate(.75)] sm:opacity-40 [mask-image:linear-gradient(to_right,transparent,black_55%),linear-gradient(to_bottom,black_60%,transparent)] [mask-composite:intersect]" />
         </div>
       )}
       <div className="min-w-0">
