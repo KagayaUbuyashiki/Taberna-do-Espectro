@@ -241,7 +241,7 @@ export function SecaoClasses({ f }: { f: Filtro }) {
           <article key={id} className="panel flex min-w-0 flex-col gap-3">
             <div className="flex items-start gap-3">
               <div className="h-20 w-20 shrink-0 overflow-hidden border border-line-2 bg-black">
-                <AssetImg path={ASSET.cls(id)} className="h-full w-full object-cover"
+                <AssetImg path={ASSET.cls(id)} className="h-full w-full object-cover object-top"
                   fallback={<Svg html={ART.emblem(id)} className="block h-full w-full p-2 text-gold [&>svg]:h-full [&>svg]:w-full" />} />
               </div>
               <div className="min-w-0">

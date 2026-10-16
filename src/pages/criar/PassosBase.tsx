@@ -83,7 +83,7 @@ function Emblema({ id, className }: { id: string; className?: string }) {
   return (
     <AssetImg
       path={ASSET.cls(id)}
-      className={clsx('aspect-[4/3] w-full object-cover', className)}
+      className={clsx('aspect-[4/3] w-full object-cover object-top', className)}
       fallback={<span className={clsx('grid aspect-[4/3] w-full place-items-center bg-black text-gold', className)}><Svg html={ART.emblem(id)} className="block w-1/2 [&>svg]:h-auto [&>svg]:w-full" /></span>}
     />
   )
