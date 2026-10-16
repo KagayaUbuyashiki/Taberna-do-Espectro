@@ -13,7 +13,8 @@ import { Header } from './fichas/Header'
 import { LevelUp } from './fichas/LevelUp'
 import { AbilitiesPanel, CombatPanel, VitalsPanel, WeaponsPanel } from './fichas/Combat'
 import { ForcePanel, PowersPanel } from './fichas/Force'
-import { FeatsPanel, GearPanel, NotesPanel, SkillsPanel } from './fichas/Traits'
+import { GearPanel, NotesPanel, SkillsPanel } from './fichas/Traits'
+import { SkillTreePanel } from './fichas/SkillTree'
 import { classLine, parseImport } from './fichas/util'
 
 export default function Fichas() {
@@ -101,14 +102,14 @@ function Sheet({ c, onOpen, onDeleted }: { c: Character; onOpen: (id: string) =>
         <VitalsPanel c={c} K={K} />
         <CombatPanel c={c} K={K} />
         <div className="min-w-0 lg:col-span-2"><WeaponsPanel c={c} K={K} /></div>
+        <div id="arvore" className="min-w-0 scroll-mt-4 lg:col-span-3"><SkillTreePanel c={c} K={K} /></div>
         <SkillsPanel c={c} K={K} />
-        <div className="min-w-0 lg:col-span-2"><FeatsPanel c={c} K={K} /></div>
         <ForcePanel c={c} K={K} />
-        <div className="min-w-0 lg:col-span-2"><PowersPanel c={c} K={K} /></div>
         <GearPanel c={c} K={K} />
-        <div className="min-w-0 lg:col-span-2"><NotesPanel c={c} /></div>
+        <div className="min-w-0 lg:col-span-2"><PowersPanel c={c} K={K} /></div>
+        <NotesPanel c={c} />
       </div>
-      {leveling && <LevelUp c={c} onClose={() => setLeveling(false)} />}
+      {leveling && <LevelUp c={c} onClose={() => setLeveling(false)} onDone={() => document.getElementById('arvore')?.scrollIntoView({ behavior: 'smooth' })} />}
     </article>
   )
 }

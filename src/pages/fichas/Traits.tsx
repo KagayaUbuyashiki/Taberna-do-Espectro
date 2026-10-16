@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import clsx from 'clsx'
-import { ABIL_SHORT, FORCE_TREES, GEAR, TREE_OF } from '../../data/saga'
-import { treesFor, type Calc } from '../../rules/engine'
+import { ABIL_SHORT, GEAR } from '../../data/saga'
+import { type Calc } from '../../rules/engine'
 import { sgn } from '../../rules/dice'
 import { useStore } from '../../store/campaign'
 import type { Character } from '../../rules/types'
-import { Dialog, PanelHead, Sub } from './Dialog'
-import { FeatPicker, TalentPicker } from './Pickers'
-import { addFeats, featDef, rollSkill, SKILL_FEAT, TREE_MAP } from './util'
+import { PanelHead } from './Dialog'
+import { rollSkill } from './util'
 
 type Props = { c: Character; K: Calc }
 const patch = (c: Character, p: Partial<Character>) => useStore.getState().patchChar(c.id, p)
@@ -48,73 +47,6 @@ export function SkillsPanel({ c, K }: Props) {
         </table>
       </div>
       {!edit && <p className="mt-2 text-xs text-ash">Conhecimentos não treinados ficam ocultos. Em Editar você marca perícias treinadas.</p>}
-    </section>
-  )
-}
-
-/** Talentos, aptidões (talentos de classe) e traços da espécie. */
-export function FeatsPanel({ c, K }: Props) {
-  const [add, setAdd] = useState<'feat' | 'talent' | null>(null)
-  const trees = [...new Set(c.cls.flatMap(k => treesFor(c, k)))]
-  const dropFeat = (i: number) => {
-    const f = c.feats[i]
-    patch(c, {
-      feats: c.feats.filter((_, j) => j !== i),
-      trained: f.startsWith(SKILL_FEAT) ? c.trained.filter(s => s !== f.slice(SKILL_FEAT.length, -1)) : c.trained,
-    })
-  }
-  return (
-    <section className="panel min-w-0">
-      <PanelHead title="Talentos e aptidões">
-        <button className="btn btn-sm" onClick={() => setAdd('feat')}>+ Talento</button>
-        <button className="btn btn-sm" onClick={() => setAdd('talent')}>+ Aptidão</button>
-      </PanelHead>
-      <Sub>Talentos</Sub>
-      <ul className="mt-2 flex flex-wrap gap-2">
-        {c.feats.map((f, i) => (
-          <li key={i} className="chip max-w-full border-gold-dim text-bone" title={featDef(f)?.d || ''}>
-            <span className="min-w-0 truncate">{f}</span>
-            <button className="ml-1 text-ash hover:text-ember" onClick={() => dropFeat(i)} aria-label={`Remover ${f}`}>×</button>
-          </li>
-        ))}
-        {!c.feats.length && <li className="text-sm text-ash">Nenhum.</li>}
-      </ul>
-
-      <Sub className="mt-5">Aptidões <span className="text-sm text-ash">(talentos de classe)</span></Sub>
-      <ul className="mt-2 flex flex-col gap-2">
-        {c.talents.map((t, i) => {
-          const tree = TREE_OF[t]
-          const T = (TREE_MAP[tree] || []).find(x => x.n === t)
-          return (
-            <li key={i} className="border-l-2 border-gold-dim pl-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <b className={clsx('font-display text-lg tracking-[.08em]', T?.dark ? 'text-ember' : 'text-gold')}>{t}</b>
-                {tree && <span className={clsx('chip', FORCE_TREES.includes(tree) && 'border-holo text-holo')}>{tree}</span>}
-                <button className="text-ash hover:text-ember" onClick={() => patch(c, { talents: c.talents.filter((_, j) => j !== i) })} aria-label={`Remover ${t}`}>×</button>
-              </div>
-              {T?.d && <p className="text-sm text-bone/75">{T.d}</p>}
-            </li>
-          )
-        })}
-        {!c.talents.length && <li className="text-sm text-ash">Nenhuma.</li>}
-      </ul>
-
-      <Sub className="mt-5">Traços da espécie</Sub>
-      <ul className="mt-2 list-inside list-disc text-sm text-bone/75">
-        {(K.sp.traits as string[]).map(t => <li key={t}>{t}</li>)}
-      </ul>
-
-      {add === 'feat' && (
-        <Dialog wide title="Adicionar talento" onClose={() => setAdd(null)}>
-          <p className="mb-3 text-sm text-ash">Talentos sem pré-requisito cumprido ficam apagados.</p>
-          <FeatPicker c={c} allowed={null} onPick={n => { patch(c, addFeats(c, [n])); setAdd(null) }} />
-        </Dialog>
-      )}
-      {add === 'talent' && (
-        <Dialog wide title="Adicionar aptidão" onClose={() => setAdd(null)}>
-          <TalentPicker c={c} trees={trees} onPick={n => { patch(c, { talents: [...c.talents, n] }); setAdd(null) }} />
-        </Dialog>
-      )}
     </section>
   )
 }
