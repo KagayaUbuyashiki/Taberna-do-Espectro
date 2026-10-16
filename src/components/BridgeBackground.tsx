@@ -100,7 +100,7 @@ export function BridgeBackground({ variant = 'page' }: { variant?: 'home' | 'pag
           <div className="aspect-square w-full rounded-full bg-[radial-gradient(circle_at_50%_0%,#3a260c,#120b04_30%,#000_60%)] shadow-[0_-4px_60px_rgba(255,210,74,.28),inset_0_6px_24px_rgba(255,210,74,.3)]" />
         )}
       </motion.div>
-      <motion.div className={shipImg ? 'absolute right-[2%] top-[3%] w-[58vw] max-w-[980px] opacity-80 [filter:brightness(.8)] lg:right-[-4%]' : 'absolute left-[18%] top-[4%] w-[70vw] max-w-[1100px]'} style={{ x: shipX, y: shipY }}>
+      <motion.div className={shipImg ? 'absolute right-[-6%] top-[9%] w-[96vw] max-w-[980px] opacity-80 [filter:brightness(.8)] sm:right-[2%] sm:top-[3%] sm:w-[58vw] lg:right-[-4%]' : 'absolute left-[18%] top-[4%] w-[70vw] max-w-[1100px]'} style={{ x: shipX, y: shipY }}>
         <motion.div
           animate={reduce ? undefined : { x: ['-4vw', '6vw'], y: [0, -10] }}
           transition={{ duration: 70, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
