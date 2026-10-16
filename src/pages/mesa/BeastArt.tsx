@@ -21,7 +21,7 @@ const silOf = (name: string, side: string) =>
 export function BeastArt({ name, side = '', className }: { name: string; side?: string; className?: string }) {
   return (
     <div className={clsx('relative overflow-hidden border border-line-2 bg-black', className)}>
-      <AssetImg path={ASSET.beast(name)} alt={name} className="h-full w-full object-cover"
+      <AssetImg path={ASSET.beast(name)} alt={name} className="h-full w-full object-cover object-top"
         fallback={
           <svg viewBox="0 0 100 100" className="h-full w-full" role="img" aria-label={name}>
             <defs>
