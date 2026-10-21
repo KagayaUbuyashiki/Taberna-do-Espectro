@@ -4,17 +4,21 @@ import { RANGES } from '../data/saga'
 import { PageHeader } from '../components/ui/PageHeader'
 import { AssetImg } from '../components/ui/AssetImg'
 import { ASSET } from '../lib/assets'
-import { calc, uid } from '../rules/engine'
+import { uid } from '../rules/engine'
 import type { MapToken } from '../rules/types'
 import { useStore } from '../store/campaign'
-import { toast } from '../store/ui'
-import { combView, type CombView } from './mesa/combat'
+import { toast, useUI } from '../store/ui'
+import { SFX } from '../lib/sfx'
+import { PainelAtaque } from '../combate/PainelAtaque'
+import { participantes, participanteDoToken } from '../combate/participantes'
+import { useMapasPx, type MapaCarregado } from '../mapas-px/registro'
+import { useTokInfo } from './mapas/tokInfo'
 import { SCENES } from './mapas/scenes'
 import { fogOf, inkOn } from './mapas/geometry'
-import { TacticalMap, type MapState, type RangeKey, type TokInfo, type Tool } from './mapas/TacticalMap'
+import { TacticalMap, type MapState, type RangeKey, type Tool } from './mapas/TacticalMap'
 
 const TOOLS: [Tool, string, string][] = [
-  ['mover', '✥', 'Mover'], ['medir', '⟷', 'Medir'], ['parede', '▭', 'Parede'], ['apagar', '⌫', 'Apagar parede'], ['cobrir', '▒', 'Cobrir névoa'], ['revelar', '◌', 'Revelar'],
+  ['mover', '✥', 'Mover'], ['medir', '⟷', 'Medir'], ['parede', '▭', 'Parede'], ['apagar', '⌫', 'Apagar parede'], ['cobrir', '▒', 'Cobrir névoa'], ['revelar', '◌', 'Revelar'], ['mirar', '⌖', 'Mirar'],
 ]
 const HERO = '#ffd24a'
 const ENEMY = '#c4141c'
@@ -29,7 +33,6 @@ function tokLabel(name: string, pc: boolean) {
 
 export default function Mapas() {
   const m = useStore(s => s.campaign.map)
-  const combat = useStore(s => s.campaign.combat)
   const chars = useStore(s => s.chars)
   const patchCampaign = useStore(s => s.patchCampaign)
   const [tool, setTool] = useState<Tool>('mover')
@@ -39,24 +42,45 @@ export default function Mapas() {
   const [sel, setSel] = useState<string | null>(null)
   const [novo, setNovo] = useState<{ l: string; c: string } | null>(null)
 
-  const views = useMemo(() => combat.list.map(x => combView(x, chars)).filter((v): v is CombView => !!v), [combat.list, chars])
-  const byId = useMemo(() => Object.fromEntries(views.map(v => [v.id, v])), [views])
-  // PV de cada ficha ligada: a combatente ou a personagem.
-  const info = useMemo<TokInfo>(() => {
-    const out: TokInfo = {}
-    m.tokens.forEach(t => {
-      if (!t.ref) return
-      const v = byId[t.ref]
-      if (v) { out[t.ref] = { pct: v.hpMax ? v.hp / v.hpMax : 0, down: v.cond === 5 }; return }
-      const c = t.ref.startsWith(CHAR) ? chars[t.ref.slice(CHAR.length)] : undefined
-      if (c) { const max = calc(c).hpMax; out[t.ref] = { pct: max ? c.hp / max : 0, down: c.cond === 5 } }
-    })
-    return out
-  }, [m.tokens, byId, chars])
+  const { info, views, byId } = useTokInfo()
+  const mapasPx = useMapasPx(st => st.mapas)
+  const pxAtual: MapaCarregado | undefined = mapasPx[m.scene]
+  const campaign = useStore(st => st.campaign)
+  const todos = useMemo(() => participantes(campaign, chars), [campaign, chars])
+  const [alvo, setAlvo] = useState('')
+  const sound = useUI(st => st.sound)
+  const setSound = useUI(st => st.setSound)
   const nameOf = (t: MapToken) => !t.ref ? '' : t.ref.startsWith(CHAR) ? chars[t.ref.slice(CHAR.length)]?.name ?? '' : byId[t.ref]?.name ?? ''
   const selTok = m.tokens.find(t => t.id === sel)
+  const atacante = participanteDoToken(selTok?.ref, todos)
+  const escolherAlvo = (tokId: string) => {
+    const p = participanteDoToken(m.tokens.find(t => t.id === tokId)?.ref, todos)
+    if (!p) { toast('Essa ficha não está ligada a um combatente nem a um herói.'); return }
+    if (p.chave === atacante?.chave) return
+    setAlvo(p.chave)
+  }
 
   const patchMap = (fn: (mp: MapState) => MapState) => patchCampaign(c => ({ ...c, map: fn({ ...c.map, fog: fogOf(c.map) }) }))
+
+  // Mapa em pixel art: a grade, as paredes e a névoa vêm do próprio mapa.
+  const trocarCena = (scene: string) => {
+    const px = mapasPx[scene]
+    if (!px) { patchMap(mp => ({ ...mp, scene })); return }
+    patchMap(mp => ({
+      ...mp, scene, cols: px.colunas, rows: px.linhas, fog: '0'.repeat(px.colunas * px.linhas), walls: [...(px.paredes ?? [])],
+      tokens: mp.tokens.map(t => ({ ...t, x: Math.min(t.x, px.colunas - 1), y: Math.min(t.y, px.linhas - 1) })),
+    }))
+  }
+  /** Próxima posição de início livre do mapa em pixel art (ou null nos cenários comuns). */
+  const inicioLivre = (mp: MapState, lado: 'herois' | 'inimigos') => {
+    const px = mapasPx[mp.scene]
+    const lista = px?.inicio?.[lado] ?? []
+    for (const s of lista) {
+      const [x, y] = s.split(',').map(Number)
+      if (!mp.tokens.some(t => t.x === x && t.y === y)) return { x, y }
+    }
+    return null
+  }
 
   const setSize = (k: 'cols' | 'rows', raw: string) => {
     const [lo, hi] = k === 'cols' ? [8, 60] : [6, 40]
@@ -75,7 +99,8 @@ export default function Mapas() {
       views.forEach(v => {
         const pc = v.side === 'pc'
         if (tokens.some(t => t.ref === v.id || (pc && t.ref === CHAR + v.charId))) return
-        tokens.push({ id: uid(), ref: v.id, label: tokLabel(v.name, pc), color: pc ? HERO : ENEMY, x: pc ? 1 + (i % 3) : mp.cols - 2 - (i % 3), y: Math.min(mp.rows - 1, 2 + Math.floor(i / 3)) })
+        const p = inicioLivre({ ...mp, tokens }, pc ? 'herois' : 'inimigos') ?? { x: pc ? 1 + (i % 3) : mp.cols - 2 - (i % 3), y: Math.min(mp.rows - 1, 2 + Math.floor(i / 3)) }
+        tokens.push({ id: uid(), ref: v.id, label: tokLabel(v.name, pc), color: pc ? HERO : ENEMY, ...p })
         i++
       })
       return { ...mp, tokens }
@@ -90,7 +115,8 @@ export default function Mapas() {
       Object.values(chars).forEach(c => {
         const noCombate = views.find(v => v.charId === c.id)
         if (tokens.some(t => t.ref === CHAR + c.id || (noCombate && t.ref === noCombate.id))) return
-        tokens.push({ id: uid(), ref: CHAR + c.id, label: tokLabel(c.name || 'Herói', true), color: HERO, x: 1 + (i % 3), y: Math.min(mp.rows - 1, 2 + Math.floor(i / 3)) })
+        const p = inicioLivre({ ...mp, tokens }, 'herois') ?? { x: 1 + (i % 3), y: Math.min(mp.rows - 1, 2 + Math.floor(i / 3)) }
+        tokens.push({ id: uid(), ref: CHAR + c.id, label: tokLabel(c.name || 'Herói', true), color: HERO, ...p })
         i++
       })
       return { ...mp, tokens }
@@ -115,8 +141,15 @@ export default function Mapas() {
       <section className="panel">
         <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_1fr_1fr_minmax(0,1.4fr)_minmax(0,1fr)]">
           <label className="field min-w-0">Cenário
-            <select className="input !py-1.5" value={m.scene} onChange={e => patchMap(mp => ({ ...mp, scene: e.target.value }))}>
-              {Object.entries(SCENES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            <select className="input !py-1.5" value={m.scene} onChange={e => trocarCena(e.target.value)}>
+              <optgroup label="Cenários">
+                {Object.entries(SCENES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </optgroup>
+              {Object.keys(mapasPx).length > 0 && (
+                <optgroup label="Mapas em pixel art">
+                  {Object.entries(mapasPx).map(([k, v]) => <option key={k} value={k}>{v.nome}</option>)}
+                </optgroup>
+              )}
             </select>
           </label>
           <label className="field min-w-0">Colunas
@@ -161,6 +194,7 @@ export default function Mapas() {
             <label className="flex items-center gap-1.5 font-display text-sm tracking-[.15em] text-ash">
               <input type="checkbox" className="accent-[var(--color-gold)]" checked={gmView} onChange={e => setGmView(e.target.checked)} /> Visão do mestre
             </label>
+            <button type="button" className={clsx('btn btn-sm', sound ? '' : 'btn-ghost')} aria-pressed={sound} onClick={() => { setSound(!sound); SFX.set(!sound); if (!sound) SFX.blaster() }}>Som {sound ? 'ligado' : 'desligado'}</button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => patchMap(mp => ({ ...mp, fogOn: true, fog: '1'.repeat(mp.cols * mp.rows) }))}>Cobrir tudo</button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => patchMap(mp => ({ ...mp, fog: '0'.repeat(mp.cols * mp.rows) }))}>Revelar tudo</button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={() => patchMap(mp => ({ ...mp, walls: [] }))} disabled={!m.walls.length}>Limpar paredes</button>
@@ -177,20 +211,33 @@ export default function Mapas() {
             </div>
           )}
           <div className="border border-line-2">
-            <TacticalMap tool={tool} gmView={gmView} range={range} zoom={zoom} sel={sel} onSelect={setSel} info={info} />
+            <TacticalMap tool={tool} gmView={gmView} range={range} zoom={zoom} sel={sel} onSelect={setSel} info={info} onPick={escolherAlvo} />
           </div>
           <p className="mt-2 text-xs text-ash">
             Mover: arraste fichas (ou o mapa, fora delas); setas movem a ficha selecionada. Parede: arraste ligando cantos da grade.
-            Cobrir e Revelar pintam a névoa. Desmarque Visão do mestre para mostrar o mapa aos jogadores.
+            Cobrir e Revelar pintam a névoa. Mirar: com quem ataca selecionado, clique no alvo. Desmarque Visão do mestre para mostrar o mapa aos jogadores.
           </p>
         </section>
 
+        <div className="min-w-0 space-y-6 self-start">
+        {/* Ataque da ficha selecionada */}
+        <section className="panel min-w-0">
+          <h2 className="panel-title">Ataque</h2>
+          {atacante ? (
+            <div className="mt-2">
+              <PainelAtaque key={atacante.chave} lista={todos} atacante={atacante.chave} alvo={alvo} onAlvo={setAlvo}
+                dicaAlvo="Escolha o alvo na lista ou use Mirar e clique nele." />
+              {tool !== 'mirar' && <button type="button" className="btn btn-sm btn-ghost mt-2" onClick={() => setTool('mirar')}>⌖ Mirar no mapa</button>}
+            </div>
+          ) : <p className="mt-2 text-sm text-ash">{selTok ? 'Essa ficha não está ligada a um combatente nem a um herói.' : 'Selecione a ficha de quem ataca.'}</p>}
+        </section>
+
         {/* Fichas no mapa */}
-        <aside className="panel min-w-0 self-start">
+        <aside className="panel min-w-0">
           <h2 className="panel-title">Fichas</h2>
           <div className="mt-2 aspect-[3/2] overflow-hidden border border-line-2 bg-black">
-            <AssetImg path={ASSET.map(m.scene)} alt={SCENES[m.scene]} className="h-full w-full object-cover"
-              fallback={<div className="scanlines flex h-full items-center justify-center p-2 text-center font-display tracking-[.2em] text-gold-dim">{SCENES[m.scene] ?? m.scene}</div>} />
+            {pxAtual ? <img src={pxAtual.imagens[pxAtual.camadas[0].id]?.src} alt={pxAtual.nome} className="h-full w-full object-cover" style={{ imageRendering: 'pixelated' }} /> : <AssetImg path={ASSET.map(m.scene)} alt={SCENES[m.scene]} className="h-full w-full object-cover"
+              fallback={<div className="scanlines flex h-full items-center justify-center p-2 text-center font-display tracking-[.2em] text-gold-dim">{SCENES[m.scene] ?? m.scene}</div>} />}
           </div>
           <p className="mt-1 font-mono text-xs text-ash">{m.cols}×{m.rows} q · {(m.cols * 1.5).toLocaleString('pt-BR')}×{(m.rows * 1.5).toLocaleString('pt-BR')} m · {m.walls.length} paredes</p>
           {m.tokens.length ? (
@@ -211,6 +258,7 @@ export default function Mapas() {
             </ul>
           ) : <p className="mt-3 text-sm text-ash">Nenhuma ficha. Traga os combatentes da Mesa ou os heróis.</p>}
         </aside>
+        </div>
       </div>
     </div>
   )
