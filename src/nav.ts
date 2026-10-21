@@ -3,6 +3,7 @@ export const NAV = [
   { path: '/', label: 'Início' },
   { path: '/criar', label: 'Criar' },
   { path: '/fichas', label: 'Fichas' },
+  { path: '/forja', label: 'Forja' },
   { path: '/mesa', label: 'Mesa' },
   { path: '/mapas', label: 'Mapas' },
   { path: '/ambiente', label: 'Ambiente' },

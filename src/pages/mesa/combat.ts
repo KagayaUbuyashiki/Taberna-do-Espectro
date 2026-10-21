@@ -150,31 +150,35 @@ export function endCombat() {
 
 /** Aplica dano contra o limiar (PC usa PV temporários primeiro) e devolve a mensagem. */
 export function applyDmgComb(id: string, amt: number): string {
-  const { campaign, chars, patchChar } = S()
+  const { campaign } = S()
   const x = campaign.combat.list.find(y => y.id === id)
   if (!x) return ''
-  if (x.side === 'pc') {
-    const c = x.charId ? chars[x.charId] : undefined
-    if (!c) return ''
-    const K = calc(c)
-    const used = Math.min(c.tmpHp || 0, amt)
-    const r = applyDamage(c.hp, c.cond || 0, K.thr, amt - used)
-    // O limiar compara o dano total do golpe, antes dos PV temporários.
-    const cond = r.hp === 0 ? 5 : amt >= K.thr ? Math.min(5, (c.cond || 0) + 1) : r.cond
-    patchChar(c.id, { hp: r.hp, cond, tmpHp: (c.tmpHp || 0) - used })
-    const nome = c.name || 'Sem nome'
-    if (r.hp === 0) return amt >= K.thr
-      ? `${nome} sofreu ${amt} (≥ limiar ${K.thr}) e chegou a 0 PV: morto, a menos que gaste 1 Ponto de Força.`
-      : `${nome} chegou a 0 PV e caiu inconsciente.`
-    if (amt >= K.thr) return `Dano ${amt} ≥ limiar ${K.thr}: ${nome} desce para ${COND[cond].l}.`
-    return `${nome}: ${c.hp} → ${r.hp} PV.`
-  }
+  if (x.side === 'pc') return x.charId ? applyDmgChar(x.charId, amt) : ''
   const r = applyDamage(x.hp, x.cond || 0, x.thr, amt)
   patchOne(id, { hp: r.hp, cond: r.cond })
   if (r.result === 'morto') return `${x.name} foi destruído/morto (dano ${amt} ≥ limiar ${x.thr}).`
   if (r.result === 'inconsciente') return `${x.name} caiu inconsciente.`
   if (r.result === 'desce') return `Dano ${amt} ≥ limiar ${x.thr}: ${x.name} vai para ${COND[r.cond].l}.`
   return `${x.name}: ${x.hp} → ${r.hp} PV.`
+}
+
+/** Dano direto na ficha do personagem (dentro ou fora do combate): PV temporários primeiro, depois o limiar. */
+export function applyDmgChar(charId: string, amt: number): string {
+  const { chars, patchChar } = S()
+  const c = chars[charId]
+  if (!c) return ''
+  const K = calc(c)
+  const used = Math.min(c.tmpHp || 0, amt)
+  const r = applyDamage(c.hp, c.cond || 0, K.thr, amt - used)
+  // O limiar compara o dano total do golpe, antes dos PV temporários.
+  const cond = r.hp === 0 ? 5 : amt >= K.thr ? Math.min(5, (c.cond || 0) + 1) : r.cond
+  patchChar(c.id, { hp: r.hp, cond, tmpHp: (c.tmpHp || 0) - used })
+  const nome = c.name || 'Sem nome'
+  if (r.hp === 0) return amt >= K.thr
+    ? `${nome} sofreu ${amt} (≥ limiar ${K.thr}) e chegou a 0 PV: morto, a menos que gaste 1 Ponto de Força.`
+    : `${nome} chegou a 0 PV e caiu inconsciente.`
+  if (amt >= K.thr) return `Dano ${amt} ≥ limiar ${K.thr}: ${nome} desce para ${COND[cond].l}.`
+  return `${nome}: ${c.hp} → ${r.hp} PV.`
 }
 
 /** Cura: limita ao máximo; quem estava Incapaz volta para -10. */

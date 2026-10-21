@@ -20,7 +20,7 @@ export function rollDamage(label: string, expr: string, who?: string, crit = fal
   const r = rollExpr(crit ? `${expr}*2` : expr)
   useStore.getState().pushRoll({ label, who, total: r.total, det: r.detail, kind: crit ? 'crit' : '' })
   useUI.getState().showPopup({ value: r.total, label, kind: crit ? 'crit' : '' })
-  SFX.blaster()
+  SFX.impacto()
   return r.total
 }
 

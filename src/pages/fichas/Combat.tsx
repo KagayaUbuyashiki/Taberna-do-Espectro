@@ -1,10 +1,10 @@
-import { useState, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { motion, useReducedMotion } from 'motion/react'
 import { ABILS, ABIL_NAME, ARMORS, ARMOR_PEN, WEAPONS } from '../../data/saga'
 import { applyDamage, uid, weaponStats, type Calc } from '../../rules/engine'
 import { sgn } from '../../rules/dice'
-import { d20, rollDamage } from '../../lib/rolls'
+import { d20 } from '../../lib/rolls'
 import { useStore } from '../../store/campaign'
 import { toast } from '../../store/ui'
 import { SFX } from '../../lib/sfx'
@@ -12,6 +12,12 @@ import { ART } from '../../art/art'
 import { Svg } from '../../components/Svg'
 import type { AbilKey, Character, WeaponEntry } from '../../rules/types'
 import { Dialog, PanelHead, Sub } from './Dialog'
+import { armaDaFicha } from '../../combate/armas'
+import { aplicarDano, atacar, causarDano, type Alvo } from '../../combate/acoes'
+import { fichaDe, mirar, mostrarAlcance } from '../../combate/mapa'
+import { participantes, participanteDoToken } from '../../combate/participantes'
+import { TacticalMap } from '../mapas/TacticalMap'
+import { useTokInfo } from '../mapas/tokInfo'
 import { COND_SHORT, CONDS, rollSkill } from './util'
 
 type Props = { c: Character; K: Calc }
@@ -77,7 +83,7 @@ export function VitalsPanel({ c, K }: Props) {
     useStore.getState().pushRoll({ label: 'Dano recebido', who: c.name, total: a, det: m })
     setMsg(m)
     toast(m)
-    SFX.blaster()
+    SFX.impacto()
   }
   const heal = () => {
     const a = Math.max(0, amt || 0)
@@ -207,26 +213,50 @@ function Row({ k, children }: { k: string; children: ReactNode }) {
 
 /** Armas: ataque contra o alvo e dano (crítico dobra). */
 export function WeaponsPanel({ c, K }: Props) {
-  const list = useStore(s => s.campaign.combat.list)
-  const npcs = list.filter(x => x.side === 'npc')
+  const campaign = useStore(s => s.campaign)
+  const chars = useStore(s => s.chars)
+  const todos = useMemo(() => participantes(campaign, chars), [campaign, chars])
+  const eu = todos.find(p => p.quem.charId === c.id)
+  const quem = { ...(eu?.quem ?? { charId: c.id }), nome: c.name }
   const [target, setTarget] = useState('')
-  const [last, setLast] = useState<{ w: string; crit: boolean } | null>(null)
+  const [last, setLast] = useState<{ w: string; crit: boolean; alvo: string } | null>(null)
+  const [dano, setDano] = useState<{ valor: number; alvo: string; aplicado: boolean } | null>(null)
   const [edit, setEdit] = useState<WeaponEntry | null>(null)
+  const [verMapa, setVerMapa] = useState(true)
+  const [sel, setSel] = useState<string | null>(null)
+  const { info } = useTokInfo()
+  const noMapa = !!fichaDe({ charId: c.id }, campaign)
 
-  const targets = [...npcs.map(x => ({ v: `${x.id}`, ref: x.ref, label: `${x.name} (Ref ${x.ref})` })), { v: 'r15', ref: 15, label: 'Reflexo 15' }, { v: 'r20', ref: 20, label: 'Reflexo 20' }]
-  const tg = targets.find(t => t.v === target)
+  const fixos = [{ v: 'r15', ref: 15, label: 'Reflexo 15' }, { v: 'r20', ref: 20, label: 'Reflexo 20' }]
+  const alvos = todos.filter(p => p.chave !== eu?.chave && p.quem.charId !== c.id)
+  const alvoP = alvos.find(p => p.chave === target)
+  const fixo = fixos.find(t => t.v === target)
+  const alvoDe = (chave: string): Alvo | undefined => {
+    const p = alvos.find(x => x.chave === chave)
+    if (p) return { ...p.quem, nome: p.nome, defesa: p.defesas.ref }
+    const f = fixos.find(t => t.v === chave)
+    return f ? { nome: f.label, defesa: f.ref } : undefined
+  }
 
   const attack = (w: WeaponEntry) => {
     const ws = weaponStats(c, w, K)
-    const r = d20(`Ataque com ${w.n}`, ws.atk, c.name, tg ? { vs: tg.ref, target: tg.label } : {})
-    setLast({ w: w.id, crit: r.nat === 20 })
-    if (ws.saber) SFX.saber()
+    const r = atacar({ arma: armaDaFicha(w), bonus: ws.atk, quem, alvo: alvoDe(target), rotulo: `Ataque com ${w.n}` })
+    setDano(null)
+    setLast(r ? { w: w.id, crit: r.critico, alvo: target } : null)
   }
   const damage = (w: WeaponEntry) => {
     const ws = weaponStats(c, w, K)
     const crit = !!last && last.w === w.id && last.crit
-    rollDamage(`Dano de ${w.n}${crit ? ' (crítico)' : ''}`, ws.dmg, c.name, crit)
+    const chave = last?.w === w.id ? last.alvo : target
+    const { valor } = causarDano({ expr: ws.dmg, critico: crit, quem: c.name, arma: w.n, alvo: alvoDe(chave) })
+    setDano(alvos.some(p => p.chave === chave) ? { valor, alvo: chave, aplicado: false } : null)
     setLast(null)
+  }
+  const aplicar = () => {
+    const p = dano && alvos.find(x => x.chave === dano.alvo)
+    if (!dano || !p) return
+    aplicarDano(p.quem, dano.valor)
+    setDano({ ...dano, aplicado: true })
   }
   const save = (w: WeaponEntry) => {
     const exists = c.weapons.some(x => x.id === w.id)
@@ -234,6 +264,7 @@ export function WeaponsPanel({ c, K }: Props) {
     setEdit(null)
   }
   const remove = (id: string) => { patch(c, { weapons: c.weapons.filter(x => x.id !== id) }); setEdit(null) }
+  const danoAlvo = dano ? alvos.find(p => p.chave === dano.alvo) : undefined
 
   return (
     <section className="panel min-w-0">
@@ -241,15 +272,20 @@ export function WeaponsPanel({ c, K }: Props) {
         <button className="btn btn-sm" onClick={() => setEdit({ id: uid(), n: '', base: 'Pistola blaster', atkMisc: 0, dmgMisc: 0, notes: '' })}>+ Arma</button>
       </PanelHead>
       <label className="mb-3 flex flex-wrap items-center gap-2 text-sm text-ash">Alvo
-        <select className="input w-auto min-w-0 max-w-full py-1" value={target} onChange={e => setTarget(e.target.value)} aria-label="Defesa do alvo">
+        <select className="input w-auto min-w-0 max-w-full py-1" value={target} onChange={e => { setTarget(e.target.value); setLast(null) }} aria-label="Alvo do ataque">
           <option value="">sem alvo</option>
-          {targets.map(t => <option key={t.v} value={t.v}>{t.label}</option>)}
+          {alvos.map(p => <option key={p.chave} value={p.chave}>{p.nome} (Ref {p.defesas.ref})</option>)}
+          {fixos.map(t => <option key={t.v} value={t.v}>{t.label}</option>)}
         </select>
+        {fixo && <span className="text-xs">defesa fixa, sem mapa</span>}
       </label>
       <ul className="flex flex-col gap-2">
         {c.weapons.map(w => {
           const ws = weaponStats(c, w, K)
           const crit = last?.w === w.id && last.crit
+          const arma = armaDaFicha(w)
+          const mira = alvoP ? mirar(arma, quem, alvoP.quem) : null
+          const lt = mira?.leitura
           return (
             <li key={w.id} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 border border-line-2 bg-black/40 p-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
               <Svg html={ws.saber ? ART.saber(w.color || '#4fc3ff') : ART.blaster()} className="block w-14 [&>svg]:h-auto [&>svg]:w-full" />
@@ -260,11 +296,17 @@ export function WeaponsPanel({ c, K }: Props) {
                   {!ws.prof && <span className="text-ember"> · sem proficiência (-5)</span>}
                   {w.notes && <> · {w.notes}</>}
                 </p>
+                {lt && (
+                  <span className={clsx('mt-1 block border-l-2 pl-2 font-mono text-xs', lt.faixa < 0 ? 'border-ember text-ember' : 'border-gold text-gold')}>
+                    {lt.rotulo}{mira && mira.bonusRef > 0 ? ` · alvo com cobertura +${mira.bonusRef} Ref` : ''}
+                  </span>
+                )}
                 {crit && <span className="chip chip-gold mt-1">20 natural: próximo dano ×2</span>}
               </div>
               <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-1 sm:justify-end">
-                <button className="btn btn-sm btn-primary font-mono" onClick={() => attack(w)}>Ataque {sgn(ws.atk)}</button>
+                <button className="btn btn-sm btn-primary font-mono" onClick={() => attack(w)}>Ataque {sgn(ws.atk + (lt && lt.faixa >= 0 ? lt.penalidade : 0))}</button>
                 <button className="btn btn-sm btn-danger font-mono" onClick={() => damage(w)}>Dano {ws.dmg}</button>
+                {noMapa && <button className="btn btn-sm btn-ghost" onClick={() => mostrarAlcance(arma, quem)} title="Acende no mapa até onde a arma alcança">Alcance</button>}
                 <button className="btn btn-sm btn-ghost" onClick={() => setEdit(w)} aria-label={`Editar ${w.n}`}>Editar</button>
               </div>
             </li>
@@ -272,6 +314,31 @@ export function WeaponsPanel({ c, K }: Props) {
         })}
         {!c.weapons.length && <li className="text-ash">Sem armas.</li>}
       </ul>
+      {dano && danoAlvo && (
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-l-2 border-ember bg-black/60 px-3 py-2 text-sm">
+          <span className="font-mono">Dano {dano.valor} em {danoAlvo.nome}</span>
+          <button className="btn btn-sm" onClick={aplicar} disabled={dano.aplicado}>{dano.aplicado ? 'Aplicado' : 'Aplicar no alvo'}</button>
+        </div>
+      )}
+
+      {/* Mapa da cena: onde está cada um, o tiro e o golpe */}
+      <div className="mt-4">
+        {noMapa ? (
+          <>
+            <button type="button" className="btn btn-sm btn-ghost" aria-expanded={verMapa} onClick={() => setVerMapa(v => !v)}>{verMapa ? 'Esconder o mapa' : 'Ver o mapa'}</button>
+            {verMapa && (
+              <div className="mt-2 border border-line-2">
+                <TacticalMap tool="mover" gmView={false} range="pistolas" zoom="ajustar" sel={sel} onSelect={setSel} info={info} readOnly maxH="44vh"
+                  onPick={id => {
+                    const p = participanteDoToken(campaign.map.tokens.find(t => t.id === id)?.ref, alvos)
+                    if (p) { setTarget(p.chave); setLast(null) }
+                  }} />
+                <p className="px-2 pb-1 pt-1 text-xs text-ash">Clique numa ficha para mirar nela. Quem move as fichas é o mestre, na página Mapas.</p>
+              </div>
+            )}
+          </>
+        ) : <p className="text-xs text-ash">{c.name || 'Este personagem'} ainda não tem ficha no mapa. Com a ficha lá, a distância e a cobertura entram sozinhas no ataque, e o tiro aparece no mapa.</p>}
+      </div>
       {edit && <WeaponEditor w={edit} isNew={!c.weapons.some(x => x.id === edit.id)} onSave={save} onRemove={remove} onClose={() => setEdit(null)} />}
     </section>
   )
